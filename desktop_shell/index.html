@@ -21,26 +21,42 @@
         --shadow: 0 12px 28px rgba(15, 23, 42, .08);
       }
       * { box-sizing: border-box; }
+      html { height: 100%; }
       body {
         margin: 0;
-        overflow-x: hidden;
+        height: 100%;
+        overflow: hidden;
         color: var(--ink);
         background: var(--bg);
         font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
       }
       button, input, select, textarea { font: inherit; }
       button { cursor: pointer; }
-      .app { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); transition: grid-template-columns .18s ease; }
+      .app { height: 100vh; overflow: hidden; display: grid; grid-template-columns: 220px minmax(0, 1fr); transition: grid-template-columns .18s ease; }
       .app.sidebar-collapsed { grid-template-columns: 64px minmax(0, 1fr); }
       .sidebar {
         min-width: 0;
         padding: 14px 10px;
         color: #e8eef7;
         background: var(--nav);
+        box-shadow: 8px 0 24px rgba(15, 23, 42, .12);
         display: grid;
         grid-template-rows: auto 1fr auto;
         gap: 14px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow: hidden;
       }
+      .lead-list::-webkit-scrollbar,
+      .queue::-webkit-scrollbar,
+      .side-stack::-webkit-scrollbar,
+      .nav::-webkit-scrollbar { width: 8px; }
+      .lead-list::-webkit-scrollbar-thumb,
+      .queue::-webkit-scrollbar-thumb,
+      .side-stack::-webkit-scrollbar-thumb,
+      .nav::-webkit-scrollbar-thumb { background: #cbd6e4; border-radius: 999px; }
+      .nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); }
       .brand { padding: 6px 6px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
       .brand-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
       .brand b { display: block; font-size: 17px; white-space: nowrap; }
@@ -49,7 +65,7 @@
         width: 32px; height: 32px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px;
         display: inline-grid; place-items: center; color: #dbeafe; background: rgba(255,255,255,.06);
       }
-      .nav { display: grid; align-content: start; gap: 8px; }
+      .nav { display: grid; align-content: start; gap: 8px; overflow: auto; min-height: 0; }
       .nav button {
         min-height: 40px; border: 0; border-radius: 8px; padding: 0 10px;
         display: flex; align-items: center; gap: 10px; text-align: left;
@@ -83,7 +99,7 @@
       .app.sidebar-collapsed .brand-row,
       .app.sidebar-collapsed .nav button,
       .app.sidebar-collapsed .settings-entry { justify-content: center; }
-      .main { min-width: 0; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+      .main { min-width: 0; height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
       .topbar {
         min-height: 62px; padding: 12px 18px; background: rgba(255,255,255,.94);
         border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between;
@@ -101,7 +117,7 @@
       .btn.ghost { background: var(--soft); }
       .btn.danger { color: var(--red); background: #fff7f7; border-color: #ffd4d4; }
       .btn:disabled { cursor: not-allowed; opacity: .52; }
-      .content { min-width: 0; padding: 14px 18px 28px; display: grid; grid-template-rows: auto 1fr; gap: 14px; overflow: hidden; }
+      .content { min-width: 0; min-height: 0; padding: 14px 18px 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; overflow: hidden; }
       .pipeline {
         border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow);
         padding: 10px 14px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
@@ -114,7 +130,7 @@
       .pipe-node b { font-size: 18px; line-height: 1; }
       .pipe-node span { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .agent-locale { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
-      .workspace { min-width: 0; display: grid; grid-template-columns: minmax(330px, 400px) minmax(0, 1fr); gap: 14px; overflow: hidden; }
+      .workspace { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(330px, 400px) minmax(0, 1fr); gap: 14px; overflow: hidden; }
       .panel {
         min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
         box-shadow: var(--shadow); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr);
@@ -131,7 +147,7 @@
       .panel-head h2 { margin: 0; font-size: 16px; }
       .panel-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .panel-tools { display: flex; align-items: center; gap: 8px; }
-      .panel-body { min-width: 0; min-height: 0; padding: 12px; overflow: auto; }
+      .panel-body { min-width: 0; min-height: 0; padding: 12px; overflow: hidden; display: flex; flex-direction: column; }
       .lead-filters { display: grid; grid-template-columns: 1fr 112px; gap: 8px; margin-bottom: 10px; }
       input, select, textarea {
         width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px;
@@ -141,7 +157,7 @@
       label.field { display: grid; gap: 6px; color: #344258; font-size: 12px; font-weight: 800; }
       .lead-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0; }
       .lead-tools span { color: var(--muted); font-size: 12px; }
-      .lead-list { display: grid; gap: 8px; }
+      .lead-list { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 8px; padding-right: 3px; }
       .lead-card {
         border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: #fff;
         display: grid; gap: 8px; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
@@ -157,15 +173,15 @@
       .tag.amber { color: #8a5207; background: #fff4dc; }
       .tag.red { color: #ad2727; background: #fff0f0; }
       .tag.blue { color: #1d4ed8; background: #eff6ff; }
-      .gmail-layout { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; height: 100%; }
+      .gmail-layout { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); gap: 12px; height: 100%; }
       .gmail-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
       .tab {
         border: 1px solid var(--line); border-radius: 999px; min-height: 34px; padding: 0 14px;
         color: #334155; background: #fff;
       }
       .tab.active { color: #fff; border-color: var(--blue); background: var(--blue); }
-      .gmail-grid { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; }
-      .queue { min-width: 0; display: grid; align-content: start; gap: 10px; }
+      .gmail-grid { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; overflow: hidden; }
+      .queue { min-width: 0; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 10px; padding-right: 3px; }
       .draft-card {
         border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden;
         transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
@@ -183,7 +199,7 @@
         margin: 0; padding: 12px; color: #24324a; background: linear-gradient(180deg, #fbfdff, #f7f9fc);
         white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 13px; line-height: 1.55;
       }
-      .side-stack { min-width: 0; display: grid; align-content: start; gap: 12px; }
+      .side-stack { min-width: 0; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding-right: 3px; }
       .mini-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; }
       .mini-card h3 { margin: 0 0 6px; font-size: 14px; }
       .mini-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -219,8 +235,12 @@
       .step { border: 1px solid var(--line); border-radius: 8px; padding: 9px; color: var(--muted); background: #fff; font-size: 12px; }
       .step.active { color: #0f3b89; border-color: #9cc2ff; background: #eef5ff; }
       @media (max-width: 1180px) {
-        .workspace, .gmail-grid { grid-template-columns: minmax(0, 1fr); overflow: auto; }
-        .content { overflow: auto; }
+        body { overflow: auto; }
+        .app, .main { height: auto; min-height: 100vh; overflow: visible; }
+        .content { overflow: visible; }
+        .workspace, .gmail-grid { grid-template-columns: minmax(0, 1fr); overflow: visible; }
+        .panel { min-height: 420px; }
+        .lead-list, .queue, .side-stack { max-height: 62vh; }
       }
       @media (max-width: 820px) {
         .app, .app.sidebar-collapsed { grid-template-columns: 1fr; }
