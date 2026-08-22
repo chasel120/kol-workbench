@@ -126,10 +126,12 @@
 
 内容：
 
+- 设置入口位于左侧栏底部，不占用首页一级工作区。
+- 面板语言：中文/英文。
 - 模型 Provider。
 - Base URL。
 - Model Name。
-- API Key。
+- API Key：不得写入桌面 Shell 本地存储，后续应接入系统凭据库。
 - Gmail OAuth Client ID。
 - 本地数据目录。
 - 发送限流策略。
