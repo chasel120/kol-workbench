@@ -183,5 +183,6 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 
 # 2026-08-22 Header Cleanup
 
-- Completed: removed the duplicate top-right quick action buttons from the main header.
+- Completed: restored the top Import Data and Log Reply global shortcuts because they remain primary operational entry points.
+- Completed: kept Add Template and Generate Draft out of the header because they are already available inside the relevant workflow panels/dialogs.
 - Completed: removed the visible Agent language selector from the progress strip while preserving hidden state for the draft-language workflow.

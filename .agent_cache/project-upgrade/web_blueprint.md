@@ -337,6 +337,6 @@ MVP 暂不完成：
 
 # 2026-08-22 Header Simplification UI Update
 
-- The main header should stay focused on title and context only, without duplicate quick-action buttons.
-- Import, reply logging, template management, and draft generation actions should live in their relevant workspace panels or dialogs.
+- The main header can keep global shortcuts for Import Data and Log Reply.
+- Template management and draft generation actions should live in their relevant workspace panels/dialogs rather than the header.
 - The progress strip should show progress metrics only; language selection should remain in task dialogs/settings rather than as a visible progress-strip control.

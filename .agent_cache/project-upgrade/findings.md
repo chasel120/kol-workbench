@@ -127,5 +127,5 @@
 
 # 2026-08-22 Header Cleanup Findings
 
-- Header-level quick actions duplicated controls already present in the workspace and made the top bar visually crowded.
+- Import Data and Log Reply remain useful as global shortcuts; Add Template and Generate Draft duplicated workspace-specific actions and made the top bar visually crowded.
 - The visible Agent language selector in the progress strip duplicated language controls in draft/reply workflows and distracted from the progress metrics.

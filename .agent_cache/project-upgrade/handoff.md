@@ -166,5 +166,6 @@ Gmail 相关开发必须谨慎：
 
 # 2026-08-22 Header Cleanup Handoff
 
-- The main header no longer renders duplicate quick-action buttons; use the existing in-workspace and dialog entry points instead.
+- The main header keeps only Import Data and Log Reply global shortcuts.
+- Add Template and Generate Draft remain removed from the header and should be accessed from workspace panels/dialogs.
 - The progress strip no longer shows the Agent language selector. `#agent-language` remains hidden in the DOM to preserve the existing draft-language state bridge.
