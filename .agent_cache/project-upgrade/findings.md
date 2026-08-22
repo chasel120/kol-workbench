@@ -45,6 +45,7 @@
 - 2026-08-22 已实现新的本地 Agent MVP 骨架：`agent_runtime/`、`desktop_shell/index.html`、`start_kol_workbench.bat`。
 - 本地 Agent Runtime 使用 Python 标准库和 SQLite 运行态库，不依赖外部包，便于本地桌面环境启动。
 - Supabase 目前通过环境变量 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY` 预留同步接口；未配置时业务数据先落本地缓存，后续应以 Supabase 作为 KOL 业务事实库。
+- 用户运行时出现“Agent 运行失败”，根因是本地 Agent 未监听端口或页面从 file/旧 HTML 入口打开。已调整桌面 Shell 在 file 协议下请求 `http://127.0.0.1:8766`，并让启动脚本自动打开正确地址。
 - 端到端验证已通过：导入、提取、生成草稿、保存回复、生成 follow-up 草稿。
 
 ## 风险发现

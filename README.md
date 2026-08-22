@@ -31,6 +31,13 @@ http://127.0.0.1:8766
 
 这里的本机 HTTP 只是一条本地控制通道，用来让桌面界面调用本地 Agent，不代表产品采用传统前后端架构。
 
+运行注意：
+
+- 请通过 `start_kol_workbench.bat` 或 `python -m agent_runtime.server` 启动。
+- 启动后不要关闭命令行窗口，关闭窗口会停止本地 Agent。
+- 浏览器请访问 `http://127.0.0.1:8766`。
+- 不建议直接双击打开 `desktop_shell/index.html` 或旧的 `kol-bd-workbench-demo.html`，否则容易出现 Agent 未连接。
+
 ## 当前能力
 
 - FastMoss `.xlsx` / `.csv` 数据导入

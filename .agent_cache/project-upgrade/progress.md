@@ -64,6 +64,9 @@
 - 已将项目结构调整为 `agent_runtime/` + `desktop_shell/`。
 - 已将启动入口改为 `python -m agent_runtime.server`。
 - 已更新 README，明确 Supabase 是 KOL 业务数据库，本地 Agent 只负责计算和运行态保存。
+- 修复直接 file 打开桌面 Shell 时 API 连接失败的提示与连接方式。
+- 启动脚本现在会自动打开 `http://127.0.0.1:8766`。
+- README 已补充运行注意事项：必须保持本地 Agent 命令行窗口运行，不建议直接打开 HTML 文件。
 
 ### 当前状态
 
