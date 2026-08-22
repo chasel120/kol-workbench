@@ -174,22 +174,32 @@
       .tag.red { color: #ad2727; background: #fff0f0; }
       .tag.blue { color: #1d4ed8; background: #eff6ff; }
       .gmail-layout { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); gap: 12px; height: 100%; }
-      .gmail-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+      .gmail-tabs { display: flex; gap: 8px; flex-wrap: wrap; flex: 0 0 auto; }
       .tab {
         border: 1px solid var(--line); border-radius: 999px; min-height: 34px; padding: 0 14px;
         color: #334155; background: #fff;
       }
       .tab.active { color: #fff; border-color: var(--blue); background: var(--blue); }
-      .gmail-grid { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; overflow: hidden; }
-      .queue { min-width: 0; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 10px; padding-right: 3px; }
+      .queue-toolbar {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        padding: 0 2px 10px; flex: 0 0 auto; color: var(--muted); font-size: 12px;
+      }
+      .queue-toolbar strong { color: var(--ink); font-size: 13px; }
+      .queue-toolbar .row-actions { justify-content: flex-end; }
+      .gmail-grid { min-width: 0; min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; overflow: hidden; }
+      .queue { min-width: 0; min-height: 0; overflow: auto; display: grid; grid-auto-rows: max-content; align-content: start; gap: 10px; padding-right: 3px; }
       .draft-card {
-        border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden;
+        min-height: 96px; border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden;
         transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
       }
       .draft-card:hover { border-color: #b9c8db; box-shadow: 0 10px 24px rgba(15,23,42,.08); transform: translateY(-1px); }
       .draft-head { padding: 10px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
       .draft-head h3 { margin: 0; font-size: 14px; }
       .draft-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+      .draft-snippet {
+        margin: 0 12px 10px; color: #475569; font-size: 12px; line-height: 1.45;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
       .draft-preview {
         max-height: 0; overflow: hidden; opacity: 0; border-top: 1px solid transparent;
         transition: max-height .24s ease, opacity .18s ease, border-color .18s ease;
@@ -221,6 +231,8 @@
       .toast { min-height: 26px; color: #166534; font-size: 13px; }
       .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; background: #fbfdff; }
       .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .inline-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+      .inline-field .btn { height: 38px; white-space: nowrap; }
       dialog {
         width: min(880px, calc(100vw - 32px)); border: 0; border-radius: 10px; padding: 0;
         color: var(--ink); box-shadow: 0 25px 80px rgba(17,24,39,.25);
@@ -359,7 +371,13 @@
                     <button class="tab" data-gmail-tab="sent"><span data-i18n="sent">已发送</span> <span id="tab-sent">0</span></button>
                     <button class="tab" data-gmail-tab="replied"><span data-i18n="replied">已回复</span> <span id="tab-replied">0</span></button>
                   </div>
-                  <div style="height:12px"></div>
+                  <div class="queue-toolbar">
+                    <span id="gmail-page-info">0 items</span>
+                    <div class="row-actions">
+                      <button class="btn" id="gmail-prev" type="button" data-i18n="prevPage">上一页</button>
+                      <button class="btn" id="gmail-next" type="button" data-i18n="nextPage">下一页</button>
+                    </div>
+                  </div>
                   <div class="gmail-grid">
                     <div class="queue" id="gmail-list"></div>
                     <aside class="side-stack">
@@ -501,10 +519,17 @@
         </div>
         <div class="form-grid">
           <label class="field"><span data-i18n="modelBaseUrl">Base URL</span><input id="setting-model-base-url" placeholder="https://api.openai.com/v1" /></label>
-          <label class="field"><span data-i18n="modelName">Model Name</span><input id="setting-model-name" placeholder="gpt-4.1-mini / deepseek-chat" /></label>
+          <label class="field"><span data-i18n="modelName">Model Name</span>
+            <div class="inline-field">
+              <input id="setting-model-name" list="model-options" placeholder="gpt-4.1-mini / deepseek-chat" />
+              <button class="btn" id="fetch-models" type="button" data-i18n="fetchModels">拉取模型</button>
+            </div>
+            <datalist id="model-options"></datalist>
+          </label>
         </div>
         <label class="field"><span data-i18n="apiKey">API Key</span><input id="setting-api-key" type="password" placeholder="当前版本不保存密钥，仅用于后续凭据库接入占位" /></label>
         <div class="notice" data-i18n="settingsNotice">当前保存 Provider、Base URL、Model Name 和面板语言。API Key 不会写入桌面 Shell 本地存储，后续应接入 Windows Credential Manager 或系统凭据库。</div>
+        <div class="toast" id="model-fetch-toast"></div>
         <div class="toast" id="settings-toast"></div>
       </div>
       <div class="dialog-actions">
@@ -517,7 +542,7 @@
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => Array.from(document.querySelectorAll(selector));
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
-      const state = { kols: [], drafts: [], replies: [], templates: [], selected: new Set(), gmailTab: "drafts" };
+      const state = { kols: [], drafts: [], replies: [], templates: [], selected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
       const settingsKey = "kolWorkbenchSettings";
       const defaultSettings = { panelLanguage: "zh", modelProvider: "openai", modelBaseUrl: "", modelName: "" };
       const i18n = {
@@ -593,9 +618,14 @@
           templateLibrary: "Template Library",
           templateLibraryDesc: "Supports dynamic fields such as {{kol_name}}, {{country}}, {{niche}}, {{platform}}, and {{brief}}.",
           aiTemplate: "AI Template",
-          supabaseBoundary: "Supabase Boundary"
+          supabaseBoundary: "Supabase Boundary",
+          prevPage: "Previous",
+          nextPage: "Next",
+          fetchModels: "Fetch Models"
         }
       };
+
+      Object.assign(i18n.zh, { prevPage: "上一页", nextPage: "下一页", fetchModels: "拉取模型" });
 
       function loadSettings() {
         try {
@@ -737,13 +767,14 @@
               </div>
               ${tag(d.status, d.status === "sent_recorded" ? "green" : "amber")}
             </div>
+            <p class="draft-snippet">${esc(d.body)}</p>
             <div class="draft-preview"><pre>${esc(d.body)}</pre></div>
             <div class="row-actions" style="padding:0 12px 12px">${draftActions(d)}</div>
           </article>
         `;
       }
 
-      function renderGmail() {
+      function renderGmailLegacy() {
         let html = "";
         if (state.gmailTab === "drafts") {
           const drafts = state.drafts.filter((d) => d.status === "pending_review");
@@ -761,6 +792,45 @@
               <div class="draft-preview"><pre>${esc(r.reply_text)}</pre></div>
             </article>
           `).join("") || `<div class="empty">暂无回复。可点击“回传回复”手动录入。</div>`;
+        }
+        $("#gmail-list").innerHTML = html;
+      }
+
+      function activeGmailItems() {
+        if (state.gmailTab === "drafts") return state.drafts.filter((d) => d.status === "pending_review");
+        if (state.gmailTab === "sent") return state.drafts.filter((d) => d.status === "sent_recorded");
+        return state.replies;
+      }
+
+      function updateGmailPager(total) {
+        const pages = Math.max(1, Math.ceil(total / state.gmailPageSize));
+        state.gmailPage = Math.min(Math.max(1, state.gmailPage), pages);
+        const start = total ? (state.gmailPage - 1) * state.gmailPageSize + 1 : 0;
+        const end = Math.min(total, state.gmailPage * state.gmailPageSize);
+        $("#gmail-page-info").innerHTML = `<strong>${start}-${end}</strong> / ${total}`;
+        $("#gmail-prev").disabled = state.gmailPage <= 1;
+        $("#gmail-next").disabled = state.gmailPage >= pages;
+      }
+
+      function renderGmail() {
+        const items = activeGmailItems();
+        updateGmailPager(items.length);
+        const pageItems = items.slice((state.gmailPage - 1) * state.gmailPageSize, state.gmailPage * state.gmailPageSize);
+        let html = "";
+        if (state.gmailTab === "drafts") {
+          html = pageItems.map(renderDraftCard).join("") || `<div class="empty">No drafts yet. Select KOLs and generate Gmail drafts.</div>`;
+        } else if (state.gmailTab === "sent") {
+          html = pageItems.map(renderDraftCard).join("") || `<div class="empty">No sent records yet. This version records manual approval only and does not send real Gmail.</div>`;
+        } else {
+          html = pageItems.map((r) => `
+            <article class="draft-card open">
+              <div class="draft-head">
+                <div><h3>${esc(r.handle || r.email || "Unknown")}</h3><p>${esc(r.account_email || "")} · ${esc(r.intent)}</p></div>
+                ${tag("replied", "green")}
+              </div>
+              <div class="draft-preview"><pre>${esc(r.reply_text)}</pre></div>
+            </article>
+          `).join("") || `<div class="empty">No replies yet. Use Log Reply to add one manually.</div>`;
         }
         $("#gmail-list").innerHTML = html;
       }
@@ -829,9 +899,7 @@
         $("#generate-status").textContent = result.message;
         state.selected.clear();
         await refresh();
-        state.gmailTab = "drafts";
-        activateGmailTab();
-        renderGmail();
+        switchGmailTab("drafts");
         $("#run-generate").disabled = false;
       }
 
@@ -906,6 +974,38 @@
         $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.gmailTab === state.gmailTab));
       }
 
+      function switchGmailTab(tab) {
+        state.gmailTab = tab;
+        state.gmailPage = 1;
+        activateGmailTab();
+        renderGmail();
+      }
+
+      async function fetchModelList() {
+        const button = $("#fetch-models");
+        const toast = $("#model-fetch-toast");
+        button.disabled = true;
+        toast.textContent = "Fetching models...";
+        try {
+          const result = await api("/api/models/list", {
+            method: "POST",
+            body: JSON.stringify({
+              provider: $("#setting-model-provider").value,
+              baseUrl: $("#setting-model-base-url").value.trim(),
+              apiKey: $("#setting-api-key").value
+            })
+          });
+          const models = result.models || [];
+          $("#model-options").innerHTML = models.map((model) => `<option value="${esc(model)}"></option>`).join("");
+          if (models.length && !$("#setting-model-name").value.trim()) $("#setting-model-name").value = models[0];
+          toast.textContent = `Fetched ${models.length} model(s). API Key was not saved.`;
+        } catch (err) {
+          toast.textContent = `Model fetch failed: ${err.message}`;
+        } finally {
+          button.disabled = false;
+        }
+      }
+
       function pulseElement(element) {
         if (!element) return;
         element.classList.remove("focus-pulse");
@@ -935,9 +1035,7 @@
           return;
         }
         if (target === "gmail") {
-          state.gmailTab = "drafts";
-          activateGmailTab();
-          renderGmail();
+          switchGmailTab("drafts");
           focusPanel("#gmail-panel");
           return;
         }
@@ -955,6 +1053,7 @@
         $$("[data-close]").forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
         $("#setting-language").addEventListener("change", () => applyPanelLanguage($("#setting-language").value));
         $("#save-settings").addEventListener("click", saveSettingsFromDialog);
+        $("#fetch-models").addEventListener("click", fetchModelList);
         $$(".nav button").forEach((button) => button.addEventListener("click", () => handleNav(button.dataset.nav)));
         $$(".collapse-panel").forEach((button) => button.addEventListener("click", () => {
           const panel = button.closest(".panel");
@@ -981,10 +1080,16 @@
           $(`#${id}`).addEventListener(id === "search" || id === "tag-filter" ? "input" : "change", () => setTimeout(refresh, 0));
         });
         $$(".tab").forEach((tabButton) => tabButton.addEventListener("click", () => {
-          state.gmailTab = tabButton.dataset.gmailTab;
-          activateGmailTab();
-          renderGmail();
+          switchGmailTab(tabButton.dataset.gmailTab);
         }));
+        $("#gmail-prev").addEventListener("click", () => {
+          state.gmailPage = Math.max(1, state.gmailPage - 1);
+          renderGmail();
+        });
+        $("#gmail-next").addEventListener("click", () => {
+          state.gmailPage += 1;
+          renderGmail();
+        });
         $("#gmail-list").addEventListener("click", (event) => {
           const preview = event.target.dataset.preview;
           const approve = event.target.dataset.approve;

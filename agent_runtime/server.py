@@ -131,6 +131,15 @@ class Handler(BaseHTTPRequestHandler):
                 template = harness.generate_template_ai(body.get("language", "en"), body.get("scenario", "first_touch"), body.get("brief", ""))
                 self.send_json({"ok": True, "template": template})
                 return
+            if path == "/api/models/list":
+                self.send_json(
+                    harness.list_supported_models(
+                        body.get("provider", "openai"),
+                        body.get("baseUrl", ""),
+                        body.get("apiKey", ""),
+                    )
+                )
+                return
             if path == "/api/supabase/sync":
                 self.send_json(harness.sync_supabase())
                 return

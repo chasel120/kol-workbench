@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import urllib.error
 import urllib.request
@@ -406,6 +407,54 @@ def summary() -> dict[str, Any]:
             "syncPending": conn.execute("SELECT COUNT(*) FROM sync_queue WHERE status = 'pending'").fetchone()[0],
         }
         return values
+
+
+def list_supported_models(provider: str = "openai", base_url: str = "", api_key: str = "") -> dict[str, Any]:
+    base = (base_url or "").strip().rstrip("/")
+    if not base:
+        raise ValueError("Base URL is required before fetching models.")
+
+    provider_key = (provider or "").strip().lower()
+    if provider_key == "local" or "ollama" in base.lower():
+        endpoint = f"{base}/api/tags"
+    else:
+        endpoint = f"{base}/models"
+
+    headers = {"Accept": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    request = urllib.request.Request(endpoint, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:300]
+        raise ValueError(f"Model list request failed with HTTP {exc.code}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise ValueError(f"Model list request failed: {exc.reason}") from exc
+
+    models: set[str] = set()
+    candidates = []
+    if isinstance(payload, dict):
+        if isinstance(payload.get("data"), list):
+            candidates.extend(payload["data"])
+        if isinstance(payload.get("models"), list):
+            candidates.extend(payload["models"])
+    elif isinstance(payload, list):
+        candidates.extend(payload)
+
+    for item in candidates:
+        if isinstance(item, str):
+            models.add(item)
+        elif isinstance(item, dict):
+            model_id = item.get("id") or item.get("name") or item.get("model")
+            if model_id:
+                models.add(str(model_id))
+
+    if not models:
+        raise ValueError("No model names were found in the provider response.")
+    return {"ok": True, "models": sorted(models, key=str.lower), "source": endpoint}
 
 
 def supabase_status() -> dict[str, Any]:

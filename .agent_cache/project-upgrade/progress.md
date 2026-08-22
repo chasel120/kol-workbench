@@ -108,3 +108,17 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - 创建 git 首次提交。
 - 配置 GitHub 远程仓库后推送。
 - 后续可继续补充 Supabase SQL migration、RLS policy 和真实 Google OAuth 设计。
+# 2026-08-22 最新补充
+
+## 已完成
+- Gmail 草稿队列增加分页显示，当前每页显示 10 条，避免 50+ 草稿挤压列表导致卡片和按钮不可见。
+- Gmail 草稿卡片增加折叠态正文摘要，保留预览展开动效。
+- 设置弹窗的 Model Name 增加“拉取模型”按钮和 datalist 建议列表。
+- 本地 Agent Runtime 新增 `/api/models/list`，按 OpenAI-compatible `/models` 响应解析 `data[].id`；同时兼容本地 Ollama 风格 `models/name/id`。
+- API Key 仅用于本次模型列表请求，不写入 localStorage、不写 SQLite、不上传 Supabase。
+
+## 验证
+- `python -m py_compile agent_runtime\harness.py agent_runtime\server.py`
+- 前端脚本解析检查通过。
+- 浏览器验证：当前真实数据有 58 条待审草稿，页面显示 `1-10 / 58`，点击下一页后显示 `11-20 / 58`。
+- 模型列表解析使用本地 mock 验证通过。

@@ -101,3 +101,10 @@ Gmail 相关开发必须谨慎：
 - 是否先实现轻量本地 Harness，再评估 Codex SDK / app-server 接入。
 - 确认用户提供的 Supabase 项目、表结构、RLS 策略和本地运行态同步队列。
 - 配置 GitHub remote 后执行 push。
+# 2026-08-22 最新交接
+
+- 本次修改集中在 `desktop_shell/index.html`、`agent_runtime/harness.py`、`agent_runtime/server.py`。
+- Gmail 队列现在分页显示：`state.gmailPageSize = 10`，三个 Tab 共用 `activeGmailItems()`、`updateGmailPager()` 和新版 `renderGmail()`。
+- 设置弹窗增加“拉取模型”按钮：前端调用 `POST /api/models/list`，返回模型写入 `#model-options`，并在模型名为空时自动填入第一个模型。
+- `/api/models/list` 支持 OpenAI-compatible `/models` 响应，也兼容部分 Ollama 风格响应。API Key 只走内存请求，不落盘。
+- 注意：如果本地服务已在 8766 运行，需要重启 `start_kol_workbench.bat` 才能加载新的 Python 接口；HTML 改动可通过刷新页面看到。

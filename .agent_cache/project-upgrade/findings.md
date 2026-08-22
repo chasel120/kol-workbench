@@ -72,3 +72,9 @@
 - 多人协作版本是否需要预留组织、角色和权限模型。
 - 轻量 Harness 是先手写本地调度层，还是直接接入 Codex SDK / app-server。
 - Supabase MVP 是否先只同步 KOL/Contact/Campaign/Outreach 摘要，还是同时启用 Auth 和组织角色。
+# 2026-08-22 最新发现
+
+- 草稿数量达到 50+ 时，单页渲染全部卡片会挤压 Gmail 工作区，导致列表像横线堆叠、操作按钮不可见。已改为分页渲染，默认每页 10 条。
+- 模型配置不能只依赖手填模型名，用户需要从 Provider 自动拉取支持模型。已新增 `/api/models/list`，由本地 Agent 临时使用 Base URL 与 API Key 拉取模型列表。
+- 模型 API Key 仍属于高敏凭据，本次实现仅用于请求，不保存到桌面 Shell、SQLite 或 Supabase。
+- 运行中的旧本地 Agent 进程不会自动加载 Python 后端代码变更；若已经启动过，需要重启 `start_kol_workbench.bat` 后模型拉取接口才会生效。
