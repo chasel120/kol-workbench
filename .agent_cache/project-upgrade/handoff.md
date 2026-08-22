@@ -133,3 +133,10 @@ Gmail 相关开发必须谨慎：
 - `POST /api/templates/delete` deletes a local reply template by id.
 - Existing drafts are not deleted when a template is deleted; drafts keep their already-rendered subject/body.
 - If the local Agent service is already running, restart `start_kol_workbench.bat` so the new Python route is loaded.
+
+# 2026-08-22 Batch Delete Compatibility Handoff
+
+- `desktop_shell/index.html` now catches `not found` from `/api/gmail/archive-batch` and `/api/gmail/delete-batch`.
+- When the batch route is missing, selected `draft:<id>` items are archived/deleted one by one through `/api/drafts/archive` or `/api/drafts/delete`.
+- Selected `reply:<id>` items still need the current backend routes; ask the user to restart `start_kol_workbench.bat` if reply batch actions fail.
+- If the user sees `not found` again after refreshing the page, stop stale Python processes bound to port 8766 and restart the workbench from the current repository.

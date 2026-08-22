@@ -1387,7 +1387,12 @@
       async function archiveSelectedGmail() {
         const items = selectedMailItems();
         if (!items.length) return;
-        await api("/api/gmail/archive-batch", { method: "POST", body: JSON.stringify({ items }) });
+        try {
+          await api("/api/gmail/archive-batch", { method: "POST", body: JSON.stringify({ items }) });
+        } catch (err) {
+          if (!isMissingBatchRoute(err)) throw err;
+          await fallbackBatchGmailAction("archive", items);
+        }
         state.gmailSelected.clear();
         await refresh();
       }
@@ -1396,9 +1401,33 @@
         const items = selectedMailItems();
         if (!items.length) return;
         if (!confirm(`删除选中的 ${items.length} 封本地邮件记录？此操作不会删除真实 Gmail 邮件。`)) return;
-        await api("/api/gmail/delete-batch", { method: "POST", body: JSON.stringify({ items }) });
+        try {
+          await api("/api/gmail/delete-batch", { method: "POST", body: JSON.stringify({ items }) });
+        } catch (err) {
+          if (!isMissingBatchRoute(err)) throw err;
+          await fallbackBatchGmailAction("delete", items);
+        }
         state.gmailSelected.clear();
         await refresh();
+      }
+
+      function isMissingBatchRoute(err) {
+        return String(err?.message || "").toLowerCase().includes("not found");
+      }
+
+      async function fallbackBatchGmailAction(action, items) {
+        const draftItems = items.filter((item) => item.kind === "draft");
+        const unsupportedItems = items.filter((item) => item.kind !== "draft");
+        if (!draftItems.length) {
+          throw new Error("Batch mail route is not loaded. Restart start_kol_workbench.bat, then refresh this page.");
+        }
+        const endpoint = action === "archive" ? "/api/drafts/archive" : "/api/drafts/delete";
+        for (const item of draftItems) {
+          await api(endpoint, { method: "POST", body: JSON.stringify({ draftId: item.id }) });
+        }
+        if (unsupportedItems.length) {
+          $("#gmail-selected-info").textContent = `Processed ${draftItems.length} drafts. Restart local Agent to process ${unsupportedItems.length} reply records.`;
+        }
       }
 
       async function fetchModelList() {

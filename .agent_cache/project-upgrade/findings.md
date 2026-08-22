@@ -97,3 +97,9 @@
 - The existing `save_template` Harness function already supported update by id, but the desktop shell did not expose edit controls or send the id when saving.
 - The local API had list/create/update template routes, but no delete route.
 - Reply template content can contain reusable outreach wording and dynamic fields, so it must remain local-only unless a future explicit sanitized sync design is approved.
+
+# 2026-08-22 Batch Delete Findings
+
+- The repository already contained `/api/gmail/delete-batch`, but the user's live service at `127.0.0.1:8766` returned `not found`, so the browser was connected to a stale local Agent process.
+- The stale backend still supports single-draft lifecycle routes, so the desktop shell can safely fall back to per-draft calls for selected draft batch delete/archive.
+- Multiple Python processes were observed listening on port 8766; stale local Agent processes are a recurring operational risk until the launcher handles restart or port ownership more explicitly.
