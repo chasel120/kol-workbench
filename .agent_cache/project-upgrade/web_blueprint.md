@@ -2,7 +2,7 @@
 
 ## 产品形态
 
-本项目第一阶段是本地桌面 Web 工具，通过本地浏览器访问本机服务使用。后续可演进为多人协作 SaaS/内网后台。
+本项目第一阶段是本地 Agent 工作台。桌面 Web 只是操作壳，通过本机控制通道调用本地 Agent Runtime；它不是传统前端 + 后端业务系统。后续可演进为多人协作 SaaS/内网后台，但 MVP 的计算和会话处理都在本地 Agent 完成。
 
 ## 目标用户
 
@@ -149,7 +149,7 @@
 
 ## Supabase 数据边界
 
-本项目使用 Supabase 保存重要 KOL 业务数据，但不保存 Agent 会话处理。
+本项目使用用户提供的 Supabase 保存 KOL 业务事实，但不保存 Agent 会话处理。
 
 Supabase 保存：
 
@@ -176,15 +176,15 @@ Supabase 保存：
 - 模型 API Key。
 - 原始上传文件。
 
-前端必须避免直接接触 Supabase service role key。任何暴露给前端的 Supabase 表必须启用 RLS。
+桌面 Shell 必须避免直接接触 Supabase service role key。任何暴露给客户端的 Supabase 表必须启用 RLS。
 
 ## Gmail 方案蓝图
 
 推荐方向：
 
 - 浏览器用于业务员完成 OAuth 授权。
-- 后端保存加密 token 引用。
-- 后端通过 Gmail API 创建草稿和发送。
+- 本地 Agent Runtime 保存加密 token 引用。
+- 本地 Agent Runtime 通过 Gmail API 创建草稿和发送。
 - 默认只生成草稿。
 - 人工确认后才发送。
 - 多 Gmail 账号独立队列、独立限流、独立审计日志。
@@ -194,7 +194,7 @@ Supabase 保存：
 - 直接保存 Gmail 密码。
 - Agent 直接控制多个浏览器点击 Gmail 发送。
 - 无人工确认批量发送。
-- 将 token 暴露给前端。
+- 将 token 暴露给桌面 Shell。
 
 ## Agent Harness 蓝图
 
@@ -230,22 +230,24 @@ MVP 可先实现轻量本地 Harness：
 
 后续再评估接入 Codex SDK 或 Codex app-server，以支持持久会话、流式事件和 approval request。
 
-## 本地桌面 Web 技术建议
+## 本地 Agent 技术建议
 
-可选方案 A：轻量本地方案
+可选方案 A：轻量本地 Agent 方案
 
-- 前端：单页 HTML 或 Vite。
-- 后端：Python FastAPI。
-- 数据：SQLite。
+- 桌面 Shell：单页 HTML 或 Vite。
+- 本地 Agent Runtime：Python 标准库 / FastAPI / Agent SDK。
+- 本地运行态：SQLite。
+- 业务数据库：Supabase。
 - 文件解析：openpyxl 或 pandas。
 - 启动：bat 脚本。
 
 可选方案 B：桌面应用方案
 
-- 前端：React/Vite。
+- 桌面 Shell：React/Vite。
 - 外壳：Tauri 或 Electron。
-- 后端：Python sidecar 或 Node。
-- 数据：SQLite。
+- 本地 Agent Runtime：Python sidecar 或 Node。
+- 本地运行态：SQLite。
+- 业务数据库：Supabase。
 - 凭据：系统 Keychain/Credential Manager。
 
 ## MVP 建议范围

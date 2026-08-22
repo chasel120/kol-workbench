@@ -216,7 +216,7 @@
 
         <section class="content">
           <section class="metrics">
-            <div class="metric"><div class="label">KOL 总数</div><div class="value" id="m-kols">0</div><p>本地 SQLite</p></div>
+            <div class="metric"><div class="label">KOL 总数</div><div class="value" id="m-kols">0</div><p>业务库 / 本地缓存</p></div>
             <div class="metric"><div class="label">可触达邮箱</div><div class="value" id="m-emails">0</div><p>可进入草稿队列</p></div>
             <div class="metric"><div class="label">待审核草稿</div><div class="value" id="m-drafts">0</div><p>人工确认后发送</p></div>
             <div class="metric"><div class="label">待同步业务记录</div><div class="value" id="m-sync">0</div><p>不含 Agent 会话</p></div>
@@ -505,7 +505,7 @@
 
       bind();
       refresh().catch((err) => {
-        document.body.innerHTML = `<pre style="padding:24px;color:#b91c1c;background:#fff">${esc(err.message)}\n请通过 start_kol_workbench.bat 启动本地后端。</pre>`;
+        document.body.innerHTML = `<pre style="padding:24px;color:#b91c1c;background:#fff">${esc(err.message)}\n请通过 start_kol_workbench.bat 启动本地 Agent。</pre>`;
       });
     </script>
   </body>

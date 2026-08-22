@@ -6,6 +6,7 @@
 
 - 用户确认新项目目标：开发「KOL 管理工作台」。
 - 用户确认项目形态：本地桌面 Web。
+- 用户进一步澄清：产品不是传统前后端架构，应是用户提供 Supabase 数据库，本地 Agent 负责计算。
 - 用户确认未来可能考虑多人协作版本。
 - 用户确认允许后续覆盖现有文件。
 - 用户确认 Gmail 方案需要进一步讨论。
@@ -44,13 +45,13 @@
 ### 已完成
 
 - 开始编写「KOL 管理工作台」本地桌面 Web 程序代码。
-- 新增 `backend/` 后端模块：
+- 最初新增 `backend/` 模块，后续已重命名为 `agent_runtime/`：
   - `storage.py`：SQLite schema、本地会话、任务事件、同步队列、审计日志。
   - `importers.py`：xlsx/csv 导入和字段映射。
   - `harness.py`：轻量 Harness，支持导入、评分、草稿生成、回复回传、Supabase 同步边界。
   - `server.py`：本地 HTTP API。
-- 新增 `frontend/index.html`，实现桌面 Web 工作台 UI。
-- 新增 `start_kol_workbench.bat`，并更新旧启动脚本指向新后端。
+- 最初新增 `frontend/index.html`，后续已重命名为 `desktop_shell/index.html`。
+- 新增 `start_kol_workbench.bat`，并更新旧启动脚本指向本地 Agent Runtime。
 - 新增 `.gitignore` 和 `README.md`。
 - 已完成端到端验证：
   - 本地页面返回 200。
@@ -59,14 +60,18 @@
   - Gmail 草稿生成成功。
   - 回复回传成功。
   - 二次跟进草稿生成成功。
+- 根据用户反馈，确认项目不应采用传统前后端架构表述。
+- 已将项目结构调整为 `agent_runtime/` + `desktop_shell/`。
+- 已将启动入口改为 `python -m agent_runtime.server`。
+- 已更新 README，明确 Supabase 是 KOL 业务数据库，本地 Agent 只负责计算和运行态保存。
 
 ### 当前状态
 
-已完成本地 MVP 技术骨架。
+已完成本地 Agent MVP 技术骨架。
 
 当前版本不会真实发送 Gmail。点击人工确认发送只会记录本地发送动作。
 
-Supabase 同步已预留后端接口和数据边界，但未配置真实 Supabase 环境变量时保持本地-only。
+Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户提供的 Supabase 配置后，应让 KOL 业务事实进入 Supabase，本地只保留运行态、缓存和敏感内容。
 
 ### 下一步
 

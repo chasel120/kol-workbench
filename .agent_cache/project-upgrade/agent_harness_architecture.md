@@ -17,9 +17,9 @@
 
 ```mermaid
 flowchart TB
-  User["BD / 主管 / 管理员"] --> UI["KOL 管理工作台 UI"]
+  User["BD / 主管 / 管理员"] --> UI["Desktop Shell 本地操作壳"]
 
-  UI --> Harness["Harness 调度层"]
+  UI --> Harness["Local Agent Runtime / Harness"]
 
   subgraph ModelLayer["模型层"]
     ModelRouter["模型路由"]
@@ -42,7 +42,7 @@ flowchart TB
 
   subgraph InfraLayer["基础设施层"]
     Files["文件 / FastMoss 导入"]
-    SQLite["SQLite 本地数据库"]
+    SQLite["SQLite 本地运行态库"]
     Supabase["Supabase Postgres 业务库"]
     Sandbox["沙箱执行"]
     Plugins["插件 / MCP 工具"]
@@ -102,7 +102,7 @@ flowchart TB
 
 ### 2. Harness 调度层
 
-Harness 是项目核心，不是普通后端 API 拼接。
+Harness 是项目核心，不是普通后端 API 拼接，也不是传统前后端系统里的业务服务层。
 
 职责：
 
@@ -112,7 +112,7 @@ Harness 是项目核心，不是普通后端 API 拼接。
 - 子 Agent 管理：按任务类型分配给不同角色 Agent。
 - 记忆闭环：把操作结果写回 KOL 状态、回复记录、草稿和审计日志。
 - 人审与授权：所有外发、报价、账号授权动作必须经过明确确认。
-- 事件流与进度：前端展示当前执行步骤、失败原因和可恢复状态。
+- 事件流与进度：桌面 Shell 展示当前执行步骤、失败原因和可恢复状态。
 - 边界与风控：控制 Gmail 额度、敏感内容、账号风险和权限范围。
 
 ### 3. 基础设施层
@@ -122,8 +122,8 @@ Harness 是项目核心，不是普通后端 API 拼接。
 组成：
 
 - 文件：FastMoss xlsx/csv/json 导入。
-- SQLite：本地数据、状态、日志和任务队列。
-- Supabase Postgres：KOL、联系方式、Campaign、触达摘要、回复摘要、审核任务和未来多人协作数据。
+- SQLite：本地运行态、隐私会话、草稿正文、原始回复、状态缓存、日志和任务队列。
+- Supabase Postgres：用户提供的 KOL 业务数据库，保存 KOL、联系方式、Campaign、触达摘要、回复摘要、审核任务和未来多人协作数据。
 - 沙箱：本地解析、批量处理、临时文件处理。
 - 插件/MCP：后续扩展 Gmail、浏览器、Web Search、CRM。
 - 浏览器 OAuth：只用于用户授权，不用于保存密码或绕过登录。
@@ -210,7 +210,7 @@ Harness 是项目核心，不是普通后端 API 拼接。
 
 - 不保存 Gmail 密码。
 - 不接管浏览器登录态。
-- token 不暴露给前端。
+- token 不暴露给桌面 Shell。
 
 ### AuditAgent
 
@@ -320,7 +320,7 @@ not_connected
 
 ## 事件流
 
-Harness 应向前端发出事件，用于展示进度：
+Harness 应向桌面 Shell 发出事件，用于展示进度：
 
 - `task.created`
 - `task.started`

@@ -12,7 +12,7 @@ from .storage import DB_PATH, init_db
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FRONTEND = ROOT / "frontend" / "index.html"
+DESKTOP_SHELL = ROOT / "desktop_shell" / "index.html"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         path = parsed.path
         if path in {"/", "/index.html"}:
-            self.send_file(FRONTEND)
+            self.send_file(DESKTOP_SHELL)
             return
         if path == "/api/summary":
             self.send_json({"ok": True, "summary": harness.summary(), "dbPath": str(DB_PATH)})
@@ -117,8 +117,8 @@ def main() -> None:
     host = "127.0.0.1"
     port = int(os.environ.get("KOL_WORKBENCH_PORT", "8766"))
     server = ThreadingHTTPServer((host, port), Handler)
-    print(f"KOL 管理工作台已启动: http://{host}:{port}")
-    print(f"本地数据库: {DB_PATH}")
+    print(f"KOL Agent 工作台已启动: http://{host}:{port}")
+    print(f"本地 Agent 运行态数据库: {DB_PATH}")
     server.serve_forever()
 
 

@@ -2,24 +2,24 @@
 
 ## 核心原则
 
-本项目采用“本地会话 + Supabase 业务数据”的混合架构。
+本项目采用“本地 Agent 运行态 + Supabase 业务数据库”的混合架构。
 
 必须严格区分：
 
-- Supabase：保存需要长期沉淀、后续可能多人协作共享的 KOL 业务数据。
-- 本地：保存 Agent 会话处理、模型上下文、提示词、草稿生成过程、Gmail token、模型 API Key、原始邮件正文等敏感或运行态数据。
+- Supabase：用户提供的 KOL 业务数据库，保存需要长期沉淀、后续可能多人协作共享的业务事实。
+- 本地 Agent Runtime：保存 Agent 会话处理、模型上下文、提示词、草稿生成过程、Gmail token、模型 API Key、原始邮件正文等敏感或运行态数据。
 
 用户明确要求：所有会话处理保存在本地，不上传数据库。
 
 ## 参考依据
 
-Supabase 每个项目提供完整 Postgres 数据库，可用于连接、管理和保护业务数据。面向前端访问的数据表必须启用 Row Level Security，并通过 RLS policy 限制访问。service role 或 secret key 不得暴露在前端。
+Supabase 每个项目提供完整 Postgres 数据库，可用于连接、管理和保护业务数据。面向客户端访问的数据表必须启用 Row Level Security，并通过 RLS policy 限制访问。service role 或 secret key 不得暴露在桌面 Shell。
 
 ## 总体架构
 
 ```mermaid
 flowchart TB
-  UI["本地桌面 Web UI"] --> LocalAPI["本地后端 / Harness"]
+  UI["Desktop Shell 本地操作壳"] --> LocalAPI["Local Agent Runtime / Harness"]
 
   subgraph LocalOnly["本地保存 Local-only"]
     LocalSQLite["SQLite / Local JSON"]
@@ -309,9 +309,9 @@ Campaign 与 KOL 关系表。
 | metadata | jsonb | 非敏感元数据 |
 | created_at | timestamptz | 时间 |
 
-## 本地数据库设计
+## 本地运行态数据库设计
 
-本地建议使用 SQLite。
+本地建议使用 SQLite，但它不是 KOL 业务主数据库。它只承担 Agent 运行态、隐私内容、本地缓存和同步队列。
 
 本地表：
 
@@ -457,18 +457,18 @@ MVP：
 
 ## 密钥与环境变量
 
-前端允许：
+桌面 Shell 允许：
 
 - Supabase publishable key。
 
-前端禁止：
+桌面 Shell 禁止：
 
 - Supabase service role key。
 - Gmail OAuth client secret。
 - Gmail refresh token。
 - 模型 API Key。
 
-本地后端保存：
+本地 Agent Runtime 保存：
 
 - Supabase service role key：仅在用户明确启用后台同步时使用，存系统凭据库。
 - Gmail refresh token：系统凭据库。
@@ -501,7 +501,7 @@ MVP：
 
 ## API 边界
 
-本地后端 API：
+本地 Agent Runtime 控制接口：
 
 - `/local/sessions/*`
 - `/local/tasks/*`
@@ -524,18 +524,18 @@ Supabase 同步 API：
 
 ## 开发顺序建议
 
-### 阶段 1：本地优先
+### 阶段 1：本地 Agent 优先
 
-- SQLite 保存全部数据。
+- SQLite 暂存运行态、本地缓存和会话数据。
 - 建立数据分类和本地 ID。
-- 不接 Supabase。
+- 尚未接入 Supabase 时，可离线试用导入、分析和草稿生成。
 
-### 阶段 2：Supabase 业务数据同步
+### 阶段 2：Supabase 作为业务数据库
 
 - 创建 Supabase schema。
-- 同步 KOL、Contact、Campaign、Outreach 摘要。
+- 让 KOL、Contact、Campaign、Outreach 摘要进入 Supabase。
 - 开启 RLS。
-- 验证 service role 不出现在前端。
+- 验证 service role 不出现在桌面 Shell。
 
 ### 阶段 3：多人协作预留
 
@@ -555,7 +555,7 @@ Supabase 同步 API：
 数据库架构验收：
 
 - 所有 Supabase 表启用 RLS。
-- service role key 不出现在前端。
+- service role key 不出现在桌面 Shell。
 - Agent 会话表不存在于 Supabase。
 - 模型消息表不存在于 Supabase。
 - Gmail token 不存在于 Supabase。
@@ -566,7 +566,7 @@ Supabase 同步 API：
 
 ## 结论
 
-Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而不是 Agent 运行态数据库。
+Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而不是 Agent 运行态数据库；本地 Agent 才是计算和会话处理主体。
 
 本项目的正确边界是：
 

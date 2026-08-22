@@ -26,12 +26,12 @@
 ## 用户已确认
 
 - 项目名称：KOL 管理工作台。
-- 项目形态：本地桌面 Web。
+- 项目形态：本地 Agent 工作台，桌面 Web 只是本地操作壳。
 - 后续方向：未来可能多人协作。
 - 文件策略：允许后续覆盖现有文件。
 - Gmail 方案：需要先讨论，不直接实现真实发送。
 - Agent 调度架构：参考 OpenAI Codex Harness，采用 Model + Harness = Agent 思路。
-- 数据库方案：Supabase 保存重要 KOL 业务数据；所有 Agent 会话处理保存在本地，不上传数据库。
+- 数据库方案：用户提供 Supabase 作为 KOL 业务数据库；所有 Agent 会话处理、模型上下文、草稿正文和原始邮件内容保存在本地，不上传 Supabase。
 
 ## 当前目录情况
 
@@ -41,8 +41,8 @@
 - `kol_agent_server.py`
 - `start_kol_agent_workbench.bat`
 - `start_kol_workbench.bat`
-- `backend/`
-- `frontend/index.html`
+- `agent_runtime/`
+- `desktop_shell/index.html`
 - `README.md`
 - `.gitignore`
 - `KOL-Agent-RPD.md`
@@ -54,10 +54,10 @@
 
 ## 当前实现状态
 
-2026-08-22 已完成本地桌面 Web MVP 骨架：
+2026-08-22 已完成本地 Agent MVP 骨架：
 
-- Python 标准库后端。
-- SQLite 本地数据库。
+- Python 标准库本地 Agent Runtime。
+- SQLite 本地运行态数据库。
 - 本地 Agent 会话和任务事件。
 - FastMoss xlsx/csv 导入。
 - KOL 评分和线索池。
@@ -94,10 +94,10 @@ Gmail 相关开发必须谨慎：
 建议下一轮先做产品和技术方案确认，而不是立刻写代码：
 
 - 优先读取 `KOL_Agent_Workbench_PRD_Enhanced.md`，该文件是用户原 PRD 的完善版。
-- 本地桌面 Web 是否继续使用 Python 后端 + HTML，还是切换到 React/Vite + FastAPI/SQLite。
+- 本地 Agent Runtime 是否继续使用 Python 标准库，还是切换到更完整的 Agent SDK / Tauri sidecar。
 - MVP 是否只做数据导入、线索池、草稿、回复回传和审核。
 - Gmail 是否先做安全占位，后续再接入 Google OAuth。
 - 是否从旧 demo 迁移能力，还是创建全新目录结构。
 - 是否先实现轻量本地 Harness，再评估 Codex SDK / app-server 接入。
-- 确认 Supabase 表结构、RLS 策略和本地 SQLite 同步队列。
+- 确认用户提供的 Supabase 项目、表结构、RLS 策略和本地运行态同步队列。
 - 配置 GitHub remote 后执行 push。
