@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS replies (
   intent TEXT NOT NULL DEFAULT 'needs_review',
   next_action TEXT NOT NULL DEFAULT 'generate_followup',
   created_at TEXT NOT NULL,
+  archived_at TEXT,
   FOREIGN KEY(kol_id) REFERENCES kol_leads(id) ON DELETE SET NULL
 );
 
@@ -139,6 +140,7 @@ CREATE TABLE IF NOT EXISTS reply_templates (
   subject TEXT NOT NULL,
   body TEXT NOT NULL,
   tags TEXT NOT NULL DEFAULT '[]',
+  is_default INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -232,6 +234,8 @@ def init_db() -> None:
         conn.executescript(SCHEMA)
         ensure_column(conn, "kol_leads", "tags", "TEXT NOT NULL DEFAULT '[]'")
         ensure_column(conn, "outreach_drafts", "archived_at", "TEXT")
+        ensure_column(conn, "replies", "archived_at", "TEXT")
+        ensure_column(conn, "reply_templates", "is_default", "INTEGER NOT NULL DEFAULT 0")
         conn.execute(
             """
             INSERT INTO local_user_profiles (id, display_name, email, role, created_at, updated_at)
@@ -239,6 +243,17 @@ def init_db() -> None:
             WHERE NOT EXISTS (SELECT 1 FROM local_user_profiles)
             """,
             ("local_user_placeholder", "BD Admin", "bd-local@example.com", "BD", now_iso(), now_iso()),
+        )
+        conn.execute(
+            """
+            UPDATE reply_templates
+            SET is_default = 1
+            WHERE id = 'tpl_default_first_touch_en'
+              AND NOT EXISTS (
+                SELECT 1 FROM reply_templates
+                WHERE language = 'en' AND scenario = 'first_touch' AND is_default = 1
+              )
+            """
         )
         conn.execute(
             """
@@ -257,6 +272,17 @@ def init_db() -> None:
                 now_iso(),
                 now_iso(),
             ),
+        )
+        conn.execute(
+            """
+            UPDATE reply_templates
+            SET is_default = 1
+            WHERE id = 'tpl_default_first_touch_en'
+              AND NOT EXISTS (
+                SELECT 1 FROM reply_templates
+                WHERE language = 'en' AND scenario = 'first_touch' AND is_default = 1
+              )
+            """
         )
         hydrate_existing_kol_tags(conn)
 

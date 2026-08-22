@@ -142,6 +142,12 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/drafts/delete":
                 self.send_json(harness.delete_draft(body.get("draftId", "")))
                 return
+            if path == "/api/gmail/archive-batch":
+                self.send_json(harness.archive_mail_items(body.get("items") or []))
+                return
+            if path == "/api/gmail/delete-batch":
+                self.send_json(harness.delete_mail_items(body.get("items") or []))
+                return
             if path == "/api/replies":
                 result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"))
                 self.send_json({"ok": True, **result})
@@ -164,6 +170,10 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path == "/api/templates/delete":
                 self.send_json(harness.delete_template(body.get("templateId", "")))
+                return
+            if path == "/api/templates/default":
+                template = harness.set_default_template(body.get("templateId", ""))
+                self.send_json({"ok": True, "template": template})
                 return
             if path == "/api/models/list":
                 self.send_json(

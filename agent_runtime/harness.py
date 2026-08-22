@@ -420,10 +420,28 @@ def email_copy(kol: dict[str, Any], brief: str = "", language: str = "en", templ
     return subject, body
 
 
+def get_default_template(conn: Any, language: str = "en", scenario: str = "first_touch") -> dict[str, Any] | None:
+    row = conn.execute(
+        "SELECT * FROM reply_templates WHERE language = ? AND scenario = ? AND is_default = 1 ORDER BY updated_at DESC LIMIT 1",
+        (language, scenario),
+    ).fetchone()
+    if not row:
+        row = conn.execute(
+            "SELECT * FROM reply_templates WHERE scenario = ? AND is_default = 1 ORDER BY updated_at DESC LIMIT 1",
+            (scenario,),
+        ).fetchone()
+    if not row:
+        row = conn.execute(
+            "SELECT * FROM reply_templates WHERE language = ? AND scenario = ? ORDER BY updated_at DESC LIMIT 1",
+            (language, scenario),
+        ).fetchone()
+    return row_to_dict(row)
+
+
 def generate_drafts(limit: int = 20, brief: str = "", from_account: str = "", kol_ids: list[str] | None = None, language: str = "en", template_id: str = "") -> list[dict[str, Any]]:
     with connect() as conn:
         session_id = create_session(conn, "生成 Gmail 触达草稿", "outreach_generation")
-        template = get_template_by_id(conn, template_id) if template_id else None
+        template = get_template_by_id(conn, template_id) if template_id else get_default_template(conn, language, "first_touch")
         event(conn, session_id, "context.loaded", "读取可触达 KOL", {"limit": limit, "selected": len(kol_ids or []), "language": language})
         if kol_ids:
             placeholders = ",".join("?" for _ in kol_ids)
@@ -504,7 +522,24 @@ def get_template_by_id(conn: Any, template_id: str) -> dict[str, Any] | None:
 
 def list_templates() -> list[dict[str, Any]]:
     with connect() as conn:
-        return rows_to_dicts(conn.execute("SELECT * FROM reply_templates ORDER BY updated_at DESC").fetchall())
+        return rows_to_dicts(conn.execute("SELECT * FROM reply_templates ORDER BY is_default DESC, updated_at DESC").fetchall())
+
+
+def set_default_template(template_id: str) -> dict[str, Any]:
+    if not template_id:
+        raise ValueError("Template id is required.")
+    with connect() as conn:
+        template = get_template_by_id(conn, template_id)
+        if not template:
+            raise ValueError("Template does not exist.")
+        ts = now_iso()
+        conn.execute(
+            "UPDATE reply_templates SET is_default = 0, updated_at = ? WHERE language = ? AND scenario = ?",
+            (ts, template.get("language", "en"), template.get("scenario", "first_touch")),
+        )
+        conn.execute("UPDATE reply_templates SET is_default = 1, updated_at = ? WHERE id = ?", (ts, template_id))
+        audit(conn, "template.default_set", "reply_template", template_id, f"Default template set: {template.get('name', template_id)}")
+        return get_template_by_id(conn, template_id) or {}
 
 
 def save_template(name: str, subject: str, body: str, language: str = "en", scenario: str = "first_touch", tags: list[str] | None = None, template_id: str = "") -> dict[str, Any]:
@@ -532,10 +567,17 @@ def delete_template(template_id: str) -> dict[str, Any]:
     if not template_id:
         raise ValueError("Template id is required.")
     with connect() as conn:
-        existing = row_to_dict(conn.execute("SELECT id, name FROM reply_templates WHERE id = ?", (template_id,)).fetchone())
+        existing = row_to_dict(conn.execute("SELECT id, name, language, scenario, is_default FROM reply_templates WHERE id = ?", (template_id,)).fetchone())
         if not existing:
             raise ValueError("Template does not exist.")
         conn.execute("DELETE FROM reply_templates WHERE id = ?", (template_id,))
+        if existing.get("is_default"):
+            fallback = conn.execute(
+                "SELECT id FROM reply_templates WHERE language = ? AND scenario = ? ORDER BY updated_at DESC LIMIT 1",
+                (existing.get("language", "en"), existing.get("scenario", "first_touch")),
+            ).fetchone()
+            if fallback:
+                conn.execute("UPDATE reply_templates SET is_default = 1, updated_at = ? WHERE id = ?", (now_iso(), fallback["id"]))
         audit(conn, "template.deleted", "reply_template", template_id, f"Deleted template: {existing.get('name', template_id)}")
         return {"ok": True, "deleted": template_id}
 
@@ -630,6 +672,66 @@ def delete_draft(draft_id: str) -> dict[str, Any]:
         conn.execute("DELETE FROM outreach_drafts WHERE id = ?", (draft_id,))
         audit(conn, "draft.deleted", "outreach_draft", draft_id, "草稿已从本地删除")
     return {"ok": True, "deleted": draft_id}
+
+
+def _normalize_mail_items(items: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    draft_ids: list[str] = []
+    reply_ids: list[str] = []
+    for item in items or []:
+        kind = str(item.get("kind") or item.get("type") or "").strip().lower()
+        item_id = str(item.get("id") or "").strip()
+        if not item_id:
+            continue
+        if kind in {"draft", "outreach_draft"}:
+            draft_ids.append(item_id)
+        elif kind in {"reply", "gmail_reply"}:
+            reply_ids.append(item_id)
+    return list(dict.fromkeys(draft_ids)), list(dict.fromkeys(reply_ids))
+
+
+def archive_mail_items(items: list[dict[str, Any]]) -> dict[str, Any]:
+    draft_ids, reply_ids = _normalize_mail_items(items)
+    if not draft_ids and not reply_ids:
+        raise ValueError("No mail items selected.")
+    ts = now_iso()
+    with connect() as conn:
+        archived_drafts = 0
+        archived_replies = 0
+        if draft_ids:
+            placeholders = ",".join("?" for _ in draft_ids)
+            result = conn.execute(
+                f"UPDATE outreach_drafts SET status = 'archived', archived_at = ?, updated_at = ? WHERE id IN ({placeholders})",
+                [ts, ts, *draft_ids],
+            )
+            archived_drafts = result.rowcount if result.rowcount is not None else 0
+        if reply_ids:
+            placeholders = ",".join("?" for _ in reply_ids)
+            result = conn.execute(
+                f"UPDATE replies SET archived_at = ? WHERE id IN ({placeholders})",
+                [ts, *reply_ids],
+            )
+            archived_replies = result.rowcount if result.rowcount is not None else 0
+        audit(conn, "gmail.batch_archived", "gmail_item", "", "Batch archived local Gmail items", {"drafts": archived_drafts, "replies": archived_replies})
+    return {"ok": True, "archived": archived_drafts + archived_replies, "drafts": archived_drafts, "replies": archived_replies}
+
+
+def delete_mail_items(items: list[dict[str, Any]]) -> dict[str, Any]:
+    draft_ids, reply_ids = _normalize_mail_items(items)
+    if not draft_ids and not reply_ids:
+        raise ValueError("No mail items selected.")
+    with connect() as conn:
+        deleted_drafts = 0
+        deleted_replies = 0
+        if draft_ids:
+            placeholders = ",".join("?" for _ in draft_ids)
+            result = conn.execute(f"DELETE FROM outreach_drafts WHERE id IN ({placeholders})", draft_ids)
+            deleted_drafts = result.rowcount if result.rowcount is not None else 0
+        if reply_ids:
+            placeholders = ",".join("?" for _ in reply_ids)
+            result = conn.execute(f"DELETE FROM replies WHERE id IN ({placeholders})", reply_ids)
+            deleted_replies = result.rowcount if result.rowcount is not None else 0
+        audit(conn, "gmail.batch_deleted", "gmail_item", "", "Batch deleted local Gmail items", {"drafts": deleted_drafts, "replies": deleted_replies})
+    return {"ok": True, "deleted": deleted_drafts + deleted_replies, "drafts": deleted_drafts, "replies": deleted_replies}
 
 
 def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: str = "needs_review") -> dict[str, Any]:

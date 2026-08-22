@@ -137,6 +137,13 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - 前端脚本解析检查通过。
 - 临时 SQLite 功能烟测通过：加密模型配置、Gmail 配置、账号占位、模型生成路径、KOL 全量 ID、草稿归档/恢复/删除。
 - 临时 8767 服务验证 `/api/settings` 和 `/api/kols/ids` 正常。
+# 2026-08-22 Gmail Batch And Default Templates
+
+- Completed: Gmail module now supports selecting visible mail items and batch archive/delete across draft, sent, archived, and replied records.
+- Completed: replies now support local `archived_at`, so replied mail can move out of the active replied tab.
+- Completed: reply templates can be marked as the default version, and draft generation uses the default template when no template is manually selected.
+- Completed: model fetch results are shown as a full selectable list instead of only auto-filling one model name.
+
 # 2026-08-22 Reply Template Management
 
 - Completed: reply templates in the local template library can now be edited from the template card.

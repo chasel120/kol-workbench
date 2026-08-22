@@ -120,6 +120,14 @@
 - 下一步：设计真实 Google OAuth + Gmail API 授权流程，明确多浏览器配置与 Gmail API 账号之间的映射。
 - 下一步：补充模型调用的重试、限流、失败恢复、批量生成进度事件。
 - 下一步：将本地加密凭据迁移为可选的系统凭据库或后续加密数据库方案。
+# 2026-08-22 Gmail Batch Plan Update
+
+- Completed: add batch archive/delete operations in the Gmail workspace.
+- Completed: allow reply records to be archived locally.
+- Completed: add default reply template support for draft generation.
+- Completed: expose all fetched model names as selectable settings UI choices.
+- Next: when real Gmail OAuth is introduced, map local batch actions to Gmail API labels only after explicit user approval.
+
 # 2026-08-22 Reply Template Plan Update
 
 - Completed: expose reply template edit/delete in the desktop shell.

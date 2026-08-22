@@ -117,6 +117,15 @@ Gmail 相关开发必须谨慎：
 - `desktop_shell/index.html` 新增全量全选、账号入口、设置内 Gmail 配置、已存档 Tab、草稿删除/存档按钮。
 - 当前真实 Gmail OAuth 仍未实现，只保存多浏览器授权占位配置；真实授权和发送仍需后续明确安全方案。
 - 本轮后必须重启本地 Agent 服务，旧 8766 进程不会自动加载新增 Python 接口。
+# 2026-08-22 Gmail Batch And Default Template Handoff
+
+- New local API routes: `POST /api/gmail/archive-batch`, `POST /api/gmail/delete-batch`, and `POST /api/templates/default`.
+- `reply_templates.is_default` and `replies.archived_at` are added through `storage.init_db()` migrations.
+- The Gmail queue now uses `state.gmailSelected` with keys like `draft:<id>` and `reply:<id>` for batch actions.
+- Archived tab includes archived drafts and archived replies.
+- Model fetch renders all returned model names in `#model-list`; clicking `使用` writes the chosen value into `#setting-model-name`.
+- Restart `start_kol_workbench.bat` after pulling this change so the new local Python routes and SQLite migrations load.
+
 # 2026-08-22 Reply Template Handoff
 
 - `desktop_shell/index.html` now renders Edit/Delete actions for each reply template card.

@@ -413,6 +413,12 @@ Agent 入口应嵌入业务对象：
 - GmailOpsAgent 当前仍是安全占位：保存 Gmail 邮箱与浏览器/Profile 配置，不读取密码、cookie、2FA 或登录态。
 - ApprovalGate 仍保持：草稿生成后进入 pending_review，人工确认仅记录本地 sent_recorded，真实 Gmail 外发仍未实现。
 - DraftLifecycle 新增 archived/delete/restore，用于控制草稿队列积压。
+# 2026-08-22 Gmail Batch Harness Update
+
+- Local Harness now owns batch mail lifecycle operations for local draft and reply records.
+- Batch archive/delete operations require explicit selected ids from the Desktop Shell and do not call real Gmail.
+- Default template selection is a Harness-level context choice: if the user does not select a template, first-touch draft generation loads the local default template for the language/scenario.
+
 # 2026-08-22 Reply Template Harness Update
 
 - Template management is treated as a local Harness tool capability.

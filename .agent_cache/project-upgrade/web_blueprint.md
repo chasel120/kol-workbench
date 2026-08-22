@@ -311,6 +311,14 @@ MVP 暂不完成：
 - 文案生成必须通过 ModelRouter/Harness 调用模型，生成失败应展示明确错误并停留在人工操作界面。
 - Gmail 草稿队列需要生命周期操作：预览、人工确认发送、存档、恢复、删除。
 - Gmail 授权配置 MVP 只保存邮箱、浏览器名称、Profile 路径和备注；不得读取或保存 Gmail 密码、cookie、2FA 或浏览器登录态。
+# 2026-08-22 Gmail Batch UI Update
+
+- Gmail workspace toolbar must support selecting the current page, batch archive, and batch delete.
+- Draft, sent, archived, and replied cards must render selection checkboxes.
+- Archived view must combine archived local draft records and archived local reply records.
+- Template Library cards must show the default template badge and provide a Set Default action.
+- Model settings must show a visible list of all fetched model names, not only a single auto-filled model.
+
 # 2026-08-22 Reply Template UI Update
 
 - Template Library cards must provide Edit and Delete actions.

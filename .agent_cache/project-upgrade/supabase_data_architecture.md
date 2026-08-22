@@ -581,6 +581,13 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - 开发期账号占位资料保存在本地 SQLite `local_user_profiles`；密码和正式登录凭据尚未实现。
 - 草稿正文仍本地保存；草稿状态可变为 `pending_review`、`sent_recorded`、`archived`，删除为本地硬删除。
 - 后续如果将加密凭据放入数据库，需要重新设计密钥管理、轮换和访问审计；不得直接把明文 token/API Key 上传 Supabase。
+# 2026-08-22 Gmail Batch Data Boundary
+
+- Gmail batch archive/delete currently changes local SQLite runtime records only.
+- `replies.archived_at` is local-only because raw reply text remains local-only.
+- `reply_templates.is_default` is local-only in the MVP; future shared template defaults require an approved sanitized template sync design.
+- Model provider responses are used only to choose a model name in settings and are not synced to Supabase.
+
 # 2026-08-22 Reply Template Data Boundary
 
 - Reply template subject/body are currently stored only in local SQLite.

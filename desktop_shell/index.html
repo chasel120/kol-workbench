@@ -196,11 +196,12 @@
       }
       .tab.active { color: #fff; border-color: var(--blue); background: var(--blue); }
       .queue-toolbar {
-        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
         padding: 0 2px 10px; flex: 0 0 auto; color: var(--muted); font-size: 12px;
       }
       .queue-toolbar strong { color: var(--ink); font-size: 13px; }
       .queue-toolbar .row-actions { justify-content: flex-end; }
+      .mail-check { width: 16px; height: 16px; margin-top: 3px; flex: 0 0 auto; accent-color: var(--blue); }
       .gmail-grid { min-width: 0; min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; overflow: hidden; }
       .queue { min-width: 0; min-height: 0; overflow: auto; display: grid; grid-auto-rows: max-content; align-content: start; gap: 10px; padding-right: 3px; }
       .draft-card {
@@ -234,6 +235,7 @@
       .template-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
       .template-actions { margin-top: 8px; justify-content: flex-start; }
       .template-actions .btn { padding: 5px 9px; font-size: 12px; }
+      .default-badge { display: inline-flex; margin-left: 6px; padding: 2px 7px; border-radius: 999px; color: #075985; background: #e0f2fe; font-size: 11px; }
       .settings-section { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfdff; display: grid; gap: 10px; }
       .settings-section h3 { margin: 0; font-size: 14px; }
       .settings-list { display: grid; gap: 8px; max-height: 150px; overflow: auto; }
@@ -254,6 +256,10 @@
       .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; background: #fbfdff; }
       .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .inline-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+      .model-list { display: none; max-height: 180px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 8px; gap: 6px; }
+      .model-list.show { display: grid; }
+      .model-choice { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 8px; border: 1px solid transparent; border-radius: 6px; background: #f8fafc; font-size: 12px; }
+      .model-choice button { padding: 4px 8px; font-size: 12px; }
       .inline-field .btn { height: 38px; white-space: nowrap; }
       dialog {
         width: min(880px, calc(100vw - 32px)); border: 0; border-radius: 10px; padding: 0;
@@ -401,7 +407,11 @@
                   </div>
                   <div class="queue-toolbar">
                     <span id="gmail-page-info">0 items</span>
+                    <span id="gmail-selected-info">已选 0</span>
                     <div class="row-actions">
+                      <button class="btn" id="gmail-select-page" type="button">全选本页</button>
+                      <button class="btn" id="gmail-batch-archive" type="button">批量存档</button>
+                      <button class="btn" id="gmail-batch-delete" type="button">批量删除</button>
                       <button class="btn" id="gmail-prev" type="button" data-i18n="prevPage">上一页</button>
                       <button class="btn" id="gmail-next" type="button" data-i18n="nextPage">下一页</button>
                     </div>
@@ -554,6 +564,7 @@
               <button class="btn" id="fetch-models" type="button" data-i18n="fetchModels">拉取模型</button>
             </div>
             <datalist id="model-options"></datalist>
+            <div class="model-list" id="model-list"></div>
           </label>
         </div>
         <label class="field"><span data-i18n="apiKey">API Key</span><input id="setting-api-key" type="password" placeholder="当前版本不保存密钥，仅用于后续凭据库接入占位" /></label>
@@ -611,7 +622,7 @@
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => Array.from(document.querySelectorAll(selector));
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
-      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
+      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
       const settingsKey = "kolWorkbenchSettings";
       const defaultSettings = { panelLanguage: "zh", modelProvider: "openai", modelBaseUrl: "", modelName: "" };
       const i18n = {
@@ -796,8 +807,8 @@
         state.selected = new Set(state.selected);
         $("#tab-drafts").textContent = state.drafts.filter((d) => d.status === "pending_review").length;
         $("#tab-sent").textContent = state.drafts.filter((d) => d.status === "sent_recorded").length;
-        $("#tab-replied").textContent = state.replies.length;
-        $("#tab-archived").textContent = state.drafts.filter((d) => d.status === "archived").length;
+        $("#tab-replied").textContent = state.replies.filter((r) => !r.archived_at).length;
+        $("#tab-archived").textContent = state.drafts.filter((d) => d.status === "archived").length + state.replies.filter((r) => r.archived_at).length;
         $("#supabase-status").textContent = supabase.supabase.configured
           ? `已配置 Supabase：${supabase.supabase.url}`
           : "未配置 Supabase。当前业务数据先保存在本地缓存，可离线使用。";
@@ -845,10 +856,17 @@
         return `<button class="btn" data-preview="${esc(d.id)}">预览</button><button class="btn primary" data-approve="${esc(d.id)}">人工确认发送</button>`;
       }
 
+      function mailKey(item) {
+        return `${item.mailKind || "draft"}:${item.id}`;
+      }
+
       function renderDraftCard(d) {
+        const key = mailKey(d);
+        const checked = state.gmailSelected.has(key) ? "checked" : "";
         return `
           <article class="draft-card" data-draft-card="${esc(d.id)}">
             <div class="draft-head">
+              <input class="mail-check" type="checkbox" data-mail-check="${esc(key)}" ${checked} />
               <div>
                 <h3>${esc(d.handle)} · ${esc(d.subject)}</h3>
                 <p>To: ${esc(d.to_email)} · From: ${esc(d.from_account || "待选择")} · ${esc(d.type)}</p>
@@ -932,6 +950,79 @@
         $("#gmail-list").innerHTML = html;
       }
 
+      function activeGmailItems() {
+        const drafts = (status) => state.drafts.filter((d) => d.status === status).map((d) => ({ ...d, mailKind: "draft" }));
+        const replies = state.replies.map((r) => ({ ...r, mailKind: "reply" }));
+        if (state.gmailTab === "drafts") return drafts("pending_review");
+        if (state.gmailTab === "sent") return drafts("sent_recorded");
+        if (state.gmailTab === "archived") {
+          return [...drafts("archived"), ...replies.filter((r) => r.archived_at)].sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+        }
+        return replies.filter((r) => !r.archived_at);
+      }
+
+      function currentGmailPageItems() {
+        const items = activeGmailItems();
+        return items.slice((state.gmailPage - 1) * state.gmailPageSize, state.gmailPage * state.gmailPageSize);
+      }
+
+      function selectedMailItems() {
+        return [...state.gmailSelected].map((key) => {
+          const [kind, ...rest] = key.split(":");
+          return { kind, id: rest.join(":") };
+        }).filter((item) => item.kind && item.id);
+      }
+
+      function updateGmailPager(total) {
+        const pages = Math.max(1, Math.ceil(total / state.gmailPageSize));
+        state.gmailPage = Math.min(Math.max(1, state.gmailPage), pages);
+        const start = total ? (state.gmailPage - 1) * state.gmailPageSize + 1 : 0;
+        const end = Math.min(total, state.gmailPage * state.gmailPageSize);
+        $("#gmail-page-info").innerHTML = `<strong>${start}-${end}</strong> / ${total}`;
+        $("#gmail-selected-info").textContent = `已选 ${state.gmailSelected.size}`;
+        $("#gmail-prev").disabled = state.gmailPage <= 1;
+        $("#gmail-next").disabled = state.gmailPage >= pages;
+      }
+
+      function renderReplyCard(r) {
+        const key = mailKey(r);
+        const checked = state.gmailSelected.has(key) ? "checked" : "";
+        return `
+          <article class="draft-card open" data-reply-card="${esc(r.id)}">
+            <div class="draft-head">
+              <input class="mail-check" type="checkbox" data-mail-check="${esc(key)}" ${checked} />
+              <div><h3>${esc(r.handle || r.email || "Unknown")}</h3><p>${esc(r.account_email || "")} · ${esc(r.intent)}</p></div>
+              ${tag(r.archived_at ? "archived" : "replied", "green")}
+            </div>
+            <div class="draft-preview"><pre>${esc(r.reply_text)}</pre></div>
+          </article>
+        `;
+      }
+
+      function renderGmailItem(item) {
+        return item.mailKind === "reply" ? renderReplyCard(item) : renderDraftCard(item);
+      }
+
+      function renderGmail() {
+        const items = activeGmailItems();
+        const liveKeys = new Set(items.map(mailKey));
+        state.gmailSelected = new Set([...state.gmailSelected].filter((key) => liveKeys.has(key)));
+        updateGmailPager(items.length);
+        const pageItems = currentGmailPageItems();
+        let html = "";
+        if (state.gmailTab === "drafts") {
+          html = pageItems.map(renderGmailItem).join("") || `<div class="empty">No drafts yet. Select KOLs and generate Gmail drafts.</div>`;
+        } else if (state.gmailTab === "sent") {
+          html = pageItems.map(renderGmailItem).join("") || `<div class="empty">No sent records yet. This version records manual approval only and does not send real Gmail.</div>`;
+        } else if (state.gmailTab === "archived") {
+          html = pageItems.map(renderGmailItem).join("") || `<div class="empty">暂无存档邮件。</div>`;
+        } else {
+          html = pageItems.map(renderGmailItem).join("") || `<div class="empty">No replies yet. Use Log Reply to add one manually.</div>`;
+        }
+        $("#gmail-list").innerHTML = html;
+        updateGmailPager(items.length);
+      }
+
       function renderTemplates() {
         $("#template-list").innerHTML = state.templates.map((tpl) => `
           <div class="template-item">
@@ -954,8 +1045,32 @@
         `).join("") || `<div class="empty">暂无模板。点击添加模板或 AI 生成模板创建。</div>`;
       }
 
+      function renderTemplates() {
+        $("#template-list").innerHTML = state.templates.map((tpl) => {
+          const isDefault = Number(tpl.is_default || 0) === 1;
+          return `
+            <div class="template-item" data-template-card="${esc(tpl.id)}">
+              <b>${esc(tpl.name)}${isDefault ? `<span class="default-badge">默认</span>` : ""}</b>
+              <p>${esc(tpl.language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
+              <div class="row-actions template-actions">
+                <button class="btn" data-edit-template="${esc(tpl.id)}">编辑</button>
+                <button class="btn" data-default-template="${esc(tpl.id)}" ${isDefault ? "disabled" : ""}>设默认</button>
+                <button class="btn" data-delete-template="${esc(tpl.id)}">删除</button>
+              </div>
+            </div>
+          `;
+        }).join("") || `<div class="empty">暂无模板。点击添加模板或 AI 生成模板创建。</div>`;
+      }
+
       function renderTemplateOptions() {
         $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}</option>`).join("");
+      }
+
+      function renderTemplateOptions() {
+        $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => {
+          const mark = Number(tpl.is_default || 0) === 1 ? " · 默认" : "";
+          return `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}${mark}</option>`;
+        }).join("");
       }
 
       function renderReplyOptions() {
@@ -1094,6 +1209,11 @@
         if (!tpl) return;
         if (!confirm(`删除回复模板「${tpl.name}」？已生成的草稿不会被删除。`)) return;
         await api("/api/templates/delete", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        await refresh();
+      }
+
+      async function setDefaultTemplate(id) {
+        await api("/api/templates/default", { method: "POST", body: JSON.stringify({ templateId: id }) });
         await refresh();
       }
 
@@ -1248,8 +1368,37 @@
       function switchGmailTab(tab) {
         state.gmailTab = tab;
         state.gmailPage = 1;
+        state.gmailSelected.clear();
         activateGmailTab();
         renderGmail();
+      }
+
+      function toggleCurrentGmailPageSelection() {
+        const pageItems = currentGmailPageItems();
+        const keys = pageItems.map(mailKey);
+        const allSelected = keys.length > 0 && keys.every((key) => state.gmailSelected.has(key));
+        keys.forEach((key) => {
+          if (allSelected) state.gmailSelected.delete(key);
+          else state.gmailSelected.add(key);
+        });
+        renderGmail();
+      }
+
+      async function archiveSelectedGmail() {
+        const items = selectedMailItems();
+        if (!items.length) return;
+        await api("/api/gmail/archive-batch", { method: "POST", body: JSON.stringify({ items }) });
+        state.gmailSelected.clear();
+        await refresh();
+      }
+
+      async function deleteSelectedGmail() {
+        const items = selectedMailItems();
+        if (!items.length) return;
+        if (!confirm(`删除选中的 ${items.length} 封本地邮件记录？此操作不会删除真实 Gmail 邮件。`)) return;
+        await api("/api/gmail/delete-batch", { method: "POST", body: JSON.stringify({ items }) });
+        state.gmailSelected.clear();
+        await refresh();
       }
 
       async function fetchModelList() {
@@ -1268,8 +1417,15 @@
           });
           const models = result.models || [];
           $("#model-options").innerHTML = models.map((model) => `<option value="${esc(model)}"></option>`).join("");
+          $("#model-list").innerHTML = models.map((model) => `
+            <div class="model-choice">
+              <span>${esc(model)}</span>
+              <button class="btn" type="button" data-use-model="${esc(model)}">使用</button>
+            </div>
+          `).join("");
+          $("#model-list").classList.toggle("show", models.length > 0);
           if (models.length && !$("#setting-model-name").value.trim()) $("#setting-model-name").value = models[0];
-          toast.textContent = `Fetched ${models.length} model(s). API Key was not saved.`;
+          toast.textContent = `Fetched ${models.length} model(s). Choose any model below. API Key was not saved.`;
         } catch (err) {
           toast.textContent = `Model fetch failed: ${err.message}`;
         } finally {
@@ -1325,6 +1481,10 @@
         $("#setting-language").addEventListener("change", () => applyPanelLanguage($("#setting-language").value));
         $("#save-settings").addEventListener("click", saveSettingsFromDialog);
         $("#fetch-models").addEventListener("click", fetchModelList);
+        $("#model-list").addEventListener("click", (event) => {
+          const model = event.target.dataset.useModel;
+          if (model) $("#setting-model-name").value = model;
+        });
         $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = `Gmail 配置失败：${err.message}`; }));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {
@@ -1371,6 +1531,16 @@
           state.gmailPage += 1;
           renderGmail();
         });
+        $("#gmail-select-page").addEventListener("click", toggleCurrentGmailPageSelection);
+        $("#gmail-batch-archive").addEventListener("click", () => archiveSelectedGmail().catch((err) => { $("#gmail-selected-info").textContent = `存档失败：${err.message}`; }));
+        $("#gmail-batch-delete").addEventListener("click", () => deleteSelectedGmail().catch((err) => { $("#gmail-selected-info").textContent = `删除失败：${err.message}`; }));
+        $("#gmail-list").addEventListener("change", (event) => {
+          const key = event.target.dataset.mailCheck;
+          if (!key) return;
+          if (event.target.checked) state.gmailSelected.add(key);
+          else state.gmailSelected.delete(key);
+          updateGmailPager(activeGmailItems().length);
+        });
         $("#gmail-list").addEventListener("click", (event) => {
           const preview = event.target.dataset.preview;
           const approve = event.target.dataset.approve;
@@ -1393,8 +1563,10 @@
         $("#template-list").addEventListener("click", (event) => {
           const editId = event.target.dataset.editTemplate;
           const deleteId = event.target.dataset.deleteTemplate;
+          const defaultId = event.target.dataset.defaultTemplate;
           if (editId) editTemplate(editId);
           if (deleteId) deleteTemplate(deleteId);
+          if (defaultId) setDefaultTemplate(defaultId);
         });
         $("#ai-template").addEventListener("click", () => { resetTemplateDialog(); $("#template-dialog").showModal(); fillAiTemplate(); });
         $("#fill-ai-template").addEventListener("click", fillAiTemplate);
