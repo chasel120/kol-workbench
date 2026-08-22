@@ -103,3 +103,9 @@
 - The repository already contained `/api/gmail/delete-batch`, but the user's live service at `127.0.0.1:8766` returned `not found`, so the browser was connected to a stale local Agent process.
 - The stale backend still supports single-draft lifecycle routes, so the desktop shell can safely fall back to per-draft calls for selected draft batch delete/archive.
 - Multiple Python processes were observed listening on port 8766; stale local Agent processes are a recurring operational risk until the launcher handles restart or port ownership more explicitly.
+
+# 2026-08-22 Template Delete Findings
+
+- Template deletion cannot be polyfilled against the stale backend because older Agent builds do not expose any template delete route.
+- The desktop shell had three `renderTemplates()` definitions; JavaScript used the last one, but the duplicates created unnecessary maintenance risk.
+- The Harness `delete_template()` path is valid in the current code and correctly reassigns a fallback default template when deleting the current default.

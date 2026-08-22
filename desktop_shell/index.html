@@ -1024,28 +1024,6 @@
       }
 
       function renderTemplates() {
-        $("#template-list").innerHTML = state.templates.map((tpl) => `
-          <div class="template-item">
-            <b>${esc(tpl.name)}</b>
-            <p>${esc(tpl.language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
-          </div>
-        `).join("") || `<div class="empty">暂无模板。</div>`;
-      }
-
-      function renderTemplates() {
-        $("#template-list").innerHTML = state.templates.map((tpl) => `
-          <div class="template-item" data-template-card="${esc(tpl.id)}">
-            <b>${esc(tpl.name)}</b>
-            <p>${esc(tpl.language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
-            <div class="row-actions template-actions">
-              <button class="btn" data-edit-template="${esc(tpl.id)}">编辑</button>
-              <button class="btn" data-delete-template="${esc(tpl.id)}">删除</button>
-            </div>
-          </div>
-        `).join("") || `<div class="empty">暂无模板。点击添加模板或 AI 生成模板创建。</div>`;
-      }
-
-      function renderTemplates() {
         $("#template-list").innerHTML = state.templates.map((tpl) => {
           const isDefault = Number(tpl.is_default || 0) === 1;
           return `
@@ -1208,7 +1186,14 @@
         const tpl = state.templates.find((item) => item.id === id);
         if (!tpl) return;
         if (!confirm(`删除回复模板「${tpl.name}」？已生成的草稿不会被删除。`)) return;
-        await api("/api/templates/delete", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        try {
+          await api("/api/templates/delete", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        } catch (err) {
+          if (isMissingBatchRoute(err)) {
+            throw new Error("当前本地 Agent 版本过旧，尚未加载模板删除接口。请关闭旧的 start_kol_workbench.bat 窗口，重新启动后刷新页面。");
+          }
+          throw err;
+        }
         await refresh();
       }
 
@@ -1590,9 +1575,11 @@
         }));
         $$("[data-open='template-dialog']").forEach((button) => button.addEventListener("click", resetTemplateDialog));
         $("#template-list").addEventListener("click", (event) => {
-          const editId = event.target.dataset.editTemplate;
-          const deleteId = event.target.dataset.deleteTemplate;
-          const defaultId = event.target.dataset.defaultTemplate;
+          const action = event.target.closest("[data-edit-template], [data-delete-template], [data-default-template]");
+          if (!action) return;
+          const editId = action.dataset.editTemplate;
+          const deleteId = action.dataset.deleteTemplate;
+          const defaultId = action.dataset.defaultTemplate;
           if (editId) editTemplate(editId);
           if (deleteId) deleteTemplate(deleteId);
           if (defaultId) setDefaultTemplate(defaultId);

@@ -140,3 +140,10 @@ Gmail 相关开发必须谨慎：
 - When the batch route is missing, selected `draft:<id>` items are archived/deleted one by one through `/api/drafts/archive` or `/api/drafts/delete`.
 - Selected `reply:<id>` items still need the current backend routes; ask the user to restart `start_kol_workbench.bat` if reply batch actions fail.
 - If the user sees `not found` again after refreshing the page, stop stale Python processes bound to port 8766 and restart the workbench from the current repository.
+
+# 2026-08-22 Template Delete Handoff
+
+- `desktop_shell/index.html` now has one `renderTemplates()` implementation with default/edit/delete controls.
+- Template action clicks use event delegation via `closest("[data-edit-template], [data-delete-template], [data-default-template]")`.
+- If `/api/templates/delete` returns `not found`, the UI now tells the user the local Agent is stale and must be restarted.
+- Current-code smoke validation passed for creating a template, setting it as default, deleting it, and assigning a fallback default.

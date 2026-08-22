@@ -156,3 +156,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: confirmed the live `127.0.0.1:8766` Agent still returned `{"error":"not found"}` for `POST /api/gmail/delete-batch`, which means the running process was an older backend.
 - Completed: added desktop-shell fallback logic for Gmail batch archive/delete. If the batch route is missing, selected draft records are processed one by one through the older `/api/drafts/archive` and `/api/drafts/delete` routes.
 - Note: reply-record batch archive/delete still requires the current Python backend routes, because older backends only expose draft lifecycle routes.
+
+# 2026-08-22 Template Delete Fix
+
+- Completed: confirmed the live `127.0.0.1:8766` Agent also returned `{"error":"not found"}` for `POST /api/templates/delete`, so the visible failure is caused by a stale backend process.
+- Completed: removed duplicate `renderTemplates()` definitions from the desktop shell and kept the single default/edit/delete-capable renderer.
+- Completed: made template action event delegation use `closest()` so button clicks remain stable if nested content is added later.
+- Completed: added a clear stale-Agent error message for template deletion when the local backend has not loaded the delete route.
