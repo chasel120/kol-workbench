@@ -334,3 +334,9 @@ MVP 暂不完成：
 - If no default template exists for the selected language, the Agent should generate directly in that language instead of silently using another language's default template.
 - Reply logging should include a follow-up draft language selector and default to the current Agent draft language.
 - Multilingual templates remain editable/deletable in the local template library and keep support for dynamic fields such as `{{kol_name}}`, `{{country}}`, `{{niche}}`, and `{{brief}}`.
+
+# 2026-08-22 Header Simplification UI Update
+
+- The main header should stay focused on title and context only, without duplicate quick-action buttons.
+- Import, reply logging, template management, and draft generation actions should live in their relevant workspace panels or dialogs.
+- The progress strip should show progress metrics only; language selection should remain in task dialogs/settings rather than as a visible progress-strip control.

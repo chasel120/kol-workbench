@@ -124,3 +124,8 @@
 - The model prompt needs both a readable language name and a strict instruction to write the entire email/template in the selected language.
 - Reply template metadata can store arbitrary language codes locally; no SQLite migration is required for multilingual template support.
 - Draft subject/body remain local runtime data and must not be synced to Supabase by default, regardless of language.
+
+# 2026-08-22 Header Cleanup Findings
+
+- Header-level quick actions duplicated controls already present in the workspace and made the top bar visually crowded.
+- The visible Agent language selector in the progress strip duplicated language controls in draft/reply workflows and distracted from the progress metrics.

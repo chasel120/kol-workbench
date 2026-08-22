@@ -163,3 +163,8 @@ Gmail 相关开发必须谨慎：
 - `POST /api/replies` accepts `language` so reply follow-up drafts use the selected multilingual draft language.
 - `agent_runtime/harness.py` now maps language codes to readable names for model prompts and uses language-specific default-template lookup.
 - Restart `start_kol_workbench.bat` after pulling this change so the updated Python Harness prompt behavior is loaded.
+
+# 2026-08-22 Header Cleanup Handoff
+
+- The main header no longer renders duplicate quick-action buttons; use the existing in-workspace and dialog entry points instead.
+- The progress strip no longer shows the Agent language selector. `#agent-language` remains hidden in the DOM to preserve the existing draft-language state bridge.

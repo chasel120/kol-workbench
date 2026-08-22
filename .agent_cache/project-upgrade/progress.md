@@ -180,3 +180,8 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: manually logged Gmail replies can now choose the follow-up draft language, using the same multilingual language list.
 - Completed: local compatibility copy generation now has multilingual fallback text for major KOL outreach markets.
 - Validation: Python compile passed, frontend script parse passed, and multilingual copy smoke test passed with UTF-8 output.
+
+# 2026-08-22 Header Cleanup
+
+- Completed: removed the duplicate top-right quick action buttons from the main header.
+- Completed: removed the visible Agent language selector from the progress strip while preserving hidden state for the draft-language workflow.
