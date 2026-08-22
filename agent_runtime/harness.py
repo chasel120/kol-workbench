@@ -41,6 +41,20 @@ def score_lead(row: dict[str, Any]) -> tuple[float, str]:
     return score, priority
 
 
+def lead_tags(row: dict[str, Any], priority: str) -> list[str]:
+    tags: list[str] = [priority]
+    if row.get("email"):
+        tags.append("has_email")
+    if row.get("country"):
+        tags.append(str(row["country"]).strip())
+    category = row.get("category") or row.get("commerce_niche")
+    if category:
+        tags.append(str(category).strip()[:24])
+    if row.get("sales_28d", 0) >= 3000:
+        tags.append("sales_active")
+    return list(dict.fromkeys([tag for tag in tags if tag]))
+
+
 def import_dataset(filename: str, content: str = "", content_base64: str = "") -> dict[str, Any]:
     rows, mapping = importers.parse_upload(filename, content, content_base64)
     dataset_id = new_id("ds")
@@ -56,14 +70,15 @@ def import_dataset(filename: str, content: str = "", content_base64: str = "") -
         for row in rows:
             score, priority = score_lead(row)
             kol_id = new_id("kol")
+            tags = lead_tags(row, priority)
             conn.execute(
                 """
                 INSERT INTO kol_leads (
                   id, dataset_id, platform, handle, email, whatsapp, other_contacts, homepage_url, fastmoss_url,
                   country, language, category, commerce_niche, followers, avg_views, engagement_rate, sales_28d,
-                  score, priority, status, raw_json, created_at, updated_at
+                  score, priority, tags, status, raw_json, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     kol_id,
@@ -85,13 +100,14 @@ def import_dataset(filename: str, content: str = "", content_base64: str = "") -
                     row.get("sales_28d", 0),
                     score,
                     priority,
+                    dumps(tags),
                     "scored",
                     dumps(row.get("raw", {})),
                     ts,
                     ts,
                 ),
             )
-            enqueue_sync(conn, "kol_leads", kol_id, {"id": kol_id, "dataset_id": dataset_id, **{k: row.get(k, "") for k in ("platform", "handle", "email", "homepage_url", "country", "category", "commerce_niche")}, "score": score, "priority": priority})
+            enqueue_sync(conn, "kol_leads", kol_id, {"id": kol_id, "dataset_id": dataset_id, **{k: row.get(k, "") for k in ("platform", "handle", "email", "homepage_url", "country", "category", "commerce_niche")}, "score": score, "priority": priority, "tags": tags})
         audit(conn, "dataset.imported", "dataset", dataset_id, f"导入 {len(rows)} 条 KOL，邮箱 {email_count} 个")
         event(conn, session_id, "task.completed", "数据导入完成", {"rows": len(rows), "emails": email_count})
         finish_session(conn, session_id, f"导入 {len(rows)} 条 KOL，提取邮箱 {email_count} 个")
@@ -108,7 +124,7 @@ def list_datasets() -> list[dict[str, Any]]:
         return rows_to_dicts(conn.execute("SELECT * FROM datasets ORDER BY created_at DESC").fetchall())
 
 
-def list_kols(query: str = "", priority: str = "", status: str = "", limit: int = 200) -> list[dict[str, Any]]:
+def list_kols(query: str = "", priority: str = "", status: str = "", tag: str = "", limit: int = 200) -> list[dict[str, Any]]:
     sql = "SELECT * FROM kol_leads WHERE 1=1"
     params: list[Any] = []
     if query:
@@ -121,47 +137,90 @@ def list_kols(query: str = "", priority: str = "", status: str = "", limit: int 
     if status:
         sql += " AND status = ?"
         params.append(status)
+    if tag:
+        sql += " AND tags LIKE ?"
+        params.append(f"%{tag}%")
     sql += " ORDER BY score DESC, updated_at DESC LIMIT ?"
     params.append(limit)
     with connect() as conn:
         return rows_to_dicts(conn.execute(sql, params).fetchall())
 
 
-def email_copy(kol: dict[str, Any], brief: str = "") -> tuple[str, str]:
+def render_template_text(text: str, kol: dict[str, Any], brief: str = "") -> str:
+    values = {
+        "kol_name": kol.get("handle") or "there",
+        "name": kol.get("handle") or "there",
+        "email": kol.get("email") or "",
+        "platform": kol.get("platform") or "TikTok",
+        "country": kol.get("country") or "your market",
+        "niche": kol.get("commerce_niche") or kol.get("category") or "your content niche",
+        "category": kol.get("category") or kol.get("commerce_niche") or "your content niche",
+        "homepage": kol.get("homepage_url") or "",
+        "brief": brief.strip(),
+    }
+    rendered = text
+    for key, value in values.items():
+        rendered = rendered.replace("{{" + key + "}}", str(value))
+    return rendered
+
+
+def email_copy(kol: dict[str, Any], brief: str = "", language: str = "en", template: dict[str, Any] | None = None) -> tuple[str, str]:
+    if template:
+        subject = render_template_text(template.get("subject", ""), kol, brief)
+        body = render_template_text(template.get("body", ""), kol, brief)
+        return subject, body
     handle = kol.get("handle") or "there"
     niche = kol.get("commerce_niche") or kol.get("category") or "your content niche"
     country = kol.get("country") or "your market"
-    subject = f"Collaboration idea for {handle}"
-    body = (
-        f"Hi {handle},\n\n"
-        f"I came across your TikTok content and noticed your audience fits {niche} in {country}. "
-        "We are preparing a creator campaign for practical products and would like to share the details with you.\n\n"
-        "Would you be open to reviewing the product information and sample plan? "
-        "If it looks relevant, we can discuss the cooperation format after your review.\n\n"
-        "Best,\nBD Team"
-    )
+    if language == "zh":
+        subject = f"{handle}，想和你聊一个合作机会"
+        body = (
+            f"Hi {handle}，\n\n"
+            f"我们关注到你的 TikTok 内容，受众和 {country} 市场的 {niche} 方向比较匹配。"
+            "我们正在准备一个达人合作活动，希望先把产品信息和样品计划发给你看看。\n\n"
+            "如果你感兴趣，我们可以再根据你的内容风格沟通合作形式。\n\n"
+            "祝好，\nBD Team"
+        )
+    else:
+        subject = f"Collaboration idea for {handle}"
+        body = (
+            f"Hi {handle},\n\n"
+            f"I came across your TikTok content and noticed your audience fits {niche} in {country}. "
+            "We are preparing a creator campaign for practical products and would like to share the details with you.\n\n"
+            "Would you be open to reviewing the product information and sample plan? "
+            "If it looks relevant, we can discuss the cooperation format after your review.\n\n"
+            "Best,\nBD Team"
+        )
     if brief.strip():
         body += f"\n\nReviewer note: {brief.strip()[:400]}"
     return subject, body
 
 
-def generate_drafts(limit: int = 20, brief: str = "", from_account: str = "") -> list[dict[str, Any]]:
+def generate_drafts(limit: int = 20, brief: str = "", from_account: str = "", kol_ids: list[str] | None = None, language: str = "en", template_id: str = "") -> list[dict[str, Any]]:
     with connect() as conn:
         session_id = create_session(conn, "生成 Gmail 触达草稿", "outreach_generation")
-        event(conn, session_id, "context.loaded", "读取可触达 KOL", {"limit": limit})
-        rows = conn.execute(
-            """
-            SELECT * FROM kol_leads
-            WHERE email IS NOT NULL AND email != '' AND status IN ('scored', 'draft_ready', 'recycled')
-            ORDER BY score DESC, updated_at DESC
-            LIMIT ?
-            """,
-            (max(1, min(limit, 100)),),
-        ).fetchall()
+        template = get_template_by_id(conn, template_id) if template_id else None
+        event(conn, session_id, "context.loaded", "读取可触达 KOL", {"limit": limit, "selected": len(kol_ids or []), "language": language})
+        if kol_ids:
+            placeholders = ",".join("?" for _ in kol_ids)
+            rows = conn.execute(
+                f"SELECT * FROM kol_leads WHERE email IS NOT NULL AND email != '' AND id IN ({placeholders}) ORDER BY score DESC, updated_at DESC",
+                kol_ids,
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT * FROM kol_leads
+                WHERE email IS NOT NULL AND email != '' AND status IN ('scored', 'draft_ready', 'recycled')
+                ORDER BY score DESC, updated_at DESC
+                LIMIT ?
+                """,
+                (max(1, min(limit, 100)),),
+            ).fetchall()
         drafts: list[dict[str, Any]] = []
         for row in rows:
             kol = row_to_dict(row) or {}
-            subject, body = email_copy(kol, brief)
+            subject, body = email_copy(kol, brief, language, template)
             risk_labels = ["manual_review_required"]
             if any(word in body.lower() for word in ["price", "commission", "free sample", "guarantee"]):
                 risk_labels.append("commercial_terms")
@@ -176,7 +235,7 @@ def generate_drafts(limit: int = 20, brief: str = "", from_account: str = "") ->
             )
             conn.execute("UPDATE kol_leads SET status = 'drafted', updated_at = ? WHERE id = ?", (ts, kol["id"]))
             enqueue_sync(conn, "outreach_records", draft_id, {"id": draft_id, "kol_id": kol["id"], "to_email": kol.get("email", ""), "status": "pending_review", "subject_summary": subject, "risk_labels": risk_labels})
-            event(conn, session_id, "draft.generated", f"已生成 {kol.get('handle') or kol.get('email')} 的草稿", {"draft_id": draft_id})
+            event(conn, session_id, "draft.generated", f"已生成 {kol.get('handle') or kol.get('email')} 的草稿", {"draft_id": draft_id, "language": language})
             drafts.append(get_draft_by_id(conn, draft_id) or {})
         audit(conn, "drafts.generated", "outreach_draft", "", f"生成 {len(drafts)} 条草稿")
         finish_session(conn, session_id, f"生成 {len(drafts)} 条待审核 Gmail 草稿")
@@ -211,6 +270,62 @@ def list_drafts(status: str = "", limit: int = 200) -> list[dict[str, Any]]:
     params.append(limit)
     with connect() as conn:
         return rows_to_dicts(conn.execute(sql, params).fetchall())
+
+
+def get_template_by_id(conn: Any, template_id: str) -> dict[str, Any] | None:
+    if not template_id:
+        return None
+    return row_to_dict(conn.execute("SELECT * FROM reply_templates WHERE id = ?", (template_id,)).fetchone())
+
+
+def list_templates() -> list[dict[str, Any]]:
+    with connect() as conn:
+        return rows_to_dicts(conn.execute("SELECT * FROM reply_templates ORDER BY updated_at DESC").fetchall())
+
+
+def save_template(name: str, subject: str, body: str, language: str = "en", scenario: str = "first_touch", tags: list[str] | None = None, template_id: str = "") -> dict[str, Any]:
+    if not name.strip() or not subject.strip() or not body.strip():
+        raise ValueError("模板名称、主题和正文不能为空")
+    ts = now_iso()
+    with connect() as conn:
+        if template_id:
+            conn.execute(
+                "UPDATE reply_templates SET name = ?, language = ?, scenario = ?, subject = ?, body = ?, tags = ?, updated_at = ? WHERE id = ?",
+                (name.strip(), language, scenario, subject, body, dumps(tags or []), ts, template_id),
+            )
+            audit(conn, "template.updated", "reply_template", template_id, f"更新模板：{name}")
+            return row_to_dict(conn.execute("SELECT * FROM reply_templates WHERE id = ?", (template_id,)).fetchone()) or {}
+        new_template_id = new_id("tpl")
+        conn.execute(
+            "INSERT INTO reply_templates (id, name, language, scenario, subject, body, tags, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (new_template_id, name.strip(), language, scenario, subject, body, dumps(tags or []), ts, ts),
+        )
+        audit(conn, "template.created", "reply_template", new_template_id, f"新增模板：{name}")
+        return row_to_dict(conn.execute("SELECT * FROM reply_templates WHERE id = ?", (new_template_id,)).fetchone()) or {}
+
+
+def generate_template_ai(language: str = "en", scenario: str = "first_touch", brief: str = "") -> dict[str, Any]:
+    if language == "zh":
+        subject = "{{kol_name}}，想和你聊一个合作机会"
+        body = (
+            "Hi {{kol_name}}，\n\n"
+            "我们关注到你的 {{platform}} 内容，觉得你在 {{country}} 市场的 {{niche}} 方向和我们的产品比较匹配。"
+            "{{brief}}\n\n"
+            "如果你愿意了解，我可以先发你产品资料和样品计划，你看是否适合你的内容风格。\n\n"
+            "祝好，\nBD Team"
+        )
+        name = "AI 生成中文触达模板"
+    else:
+        subject = "Collaboration idea for {{kol_name}}"
+        body = (
+            "Hi {{kol_name}},\n\n"
+            "I came across your {{platform}} content and noticed your audience fits {{niche}} in {{country}}. "
+            "{{brief}}\n\n"
+            "Would you be open to reviewing the product details and sample plan? If it feels relevant, we can discuss the cooperation format after your review.\n\n"
+            "Best,\nBD Team"
+        )
+        name = "AI generated first-touch template"
+    return {"name": name, "language": language, "scenario": scenario, "subject": subject, "body": body, "tags": ["ai_generated", scenario, language]}
 
 
 def approve_draft(draft_id: str, from_account: str = "") -> dict[str, Any]:

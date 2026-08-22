@@ -68,12 +68,16 @@ class Handler(BaseHTTPRequestHandler):
                         query=query.get("query", [""])[0],
                         priority=query.get("priority", [""])[0],
                         status=query.get("status", [""])[0],
+                        tag=query.get("tag", [""])[0],
                     ),
                 }
             )
             return
         if path == "/api/drafts":
             self.send_json({"ok": True, "drafts": harness.list_drafts(status=query.get("status", [""])[0])})
+            return
+        if path == "/api/templates":
+            self.send_json({"ok": True, "templates": harness.list_templates()})
             return
         if path == "/api/replies":
             self.send_json({"ok": True, "replies": harness.list_replies()})
@@ -93,8 +97,15 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, "dataset": dataset})
                 return
             if path == "/api/drafts/generate":
-                drafts = harness.generate_drafts(int(body.get("limit", 20) or 20), body.get("brief", ""), body.get("fromAccount", ""))
-                self.send_json({"ok": True, "drafts": drafts})
+                drafts = harness.generate_drafts(
+                    int(body.get("limit", 20) or 20),
+                    body.get("brief", ""),
+                    body.get("fromAccount", ""),
+                    body.get("kolIds") or [],
+                    body.get("language", "en"),
+                    body.get("templateId", ""),
+                )
+                self.send_json({"ok": True, "drafts": drafts, "message": f"已生成 {len(drafts)} 条草稿，进入 Gmail 草稿队列。"})
                 return
             if path == "/api/drafts/approve":
                 draft = harness.approve_draft(body.get("draftId", ""), body.get("fromAccount", ""))
@@ -103,6 +114,22 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/replies":
                 result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"))
                 self.send_json({"ok": True, **result})
+                return
+            if path == "/api/templates":
+                template = harness.save_template(
+                    body.get("name", ""),
+                    body.get("subject", ""),
+                    body.get("body", ""),
+                    body.get("language", "en"),
+                    body.get("scenario", "first_touch"),
+                    body.get("tags") or [],
+                    body.get("id", ""),
+                )
+                self.send_json({"ok": True, "template": template})
+                return
+            if path == "/api/templates/ai":
+                template = harness.generate_template_ai(body.get("language", "en"), body.get("scenario", "first_touch"), body.get("brief", ""))
+                self.send_json({"ok": True, "template": template})
                 return
             if path == "/api/supabase/sync":
                 self.send_json(harness.sync_supabase())

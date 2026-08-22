@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS kol_leads (
   sales_28d REAL DEFAULT 0,
   score REAL DEFAULT 0,
   priority TEXT NOT NULL DEFAULT 'low',
+  tags TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'imported',
   raw_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL,
@@ -127,6 +128,18 @@ CREATE TABLE IF NOT EXISTS replies (
   next_action TEXT NOT NULL DEFAULT 'generate_followup',
   created_at TEXT NOT NULL,
   FOREIGN KEY(kol_id) REFERENCES kol_leads(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS reply_templates (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  language TEXT NOT NULL DEFAULT 'en',
+  scenario TEXT NOT NULL DEFAULT 'first_touch',
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  tags TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS review_tasks (
@@ -189,15 +202,63 @@ CREATE TABLE IF NOT EXISTS sync_queue (
 def init_db() -> None:
     with connect() as conn:
         conn.executescript(SCHEMA)
+        ensure_column(conn, "kol_leads", "tags", "TEXT NOT NULL DEFAULT '[]'")
+        conn.execute(
+            """
+            INSERT INTO reply_templates (id, name, language, scenario, subject, body, tags, created_at, updated_at)
+            SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+            WHERE NOT EXISTS (SELECT 1 FROM reply_templates)
+            """,
+            (
+                "tpl_default_first_touch_en",
+                "First touch - friendly EN",
+                "en",
+                "first_touch",
+                "Collaboration idea for {{kol_name}}",
+                "Hi {{kol_name}},\n\nI came across your {{platform}} content and noticed your audience fits {{niche}} in {{country}}. We are preparing a creator campaign and would like to share the product details with you.\n\nWould you be open to reviewing the product information and sample plan?\n\nBest,\nBD Team",
+                dumps(["first_touch", "english", "safe"]),
+                now_iso(),
+                now_iso(),
+            ),
+        )
+        hydrate_existing_kol_tags(conn)
+
+
+def ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
+def hydrate_existing_kol_tags(conn: sqlite3.Connection) -> None:
+    rows = conn.execute(
+        """
+        SELECT id, email, country, category, commerce_niche, sales_28d, priority, tags
+        FROM kol_leads
+        WHERE tags IS NULL OR tags = '' OR tags = '[]'
+        """
+    ).fetchall()
+    for row in rows:
+        tags = [row["priority"] or "low"]
+        if row["email"]:
+            tags.append("has_email")
+        if row["country"]:
+            tags.append(str(row["country"]).strip())
+        category = row["category"] or row["commerce_niche"]
+        if category:
+            tags.append(str(category).strip()[:24])
+        if (row["sales_28d"] or 0) >= 3000:
+            tags.append("sales_active")
+        conn.execute("UPDATE kol_leads SET tags = ? WHERE id = ?", (dumps(list(dict.fromkeys([tag for tag in tags if tag]))), row["id"]))
 
 
 def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
     if row is None:
         return None
     data = dict(row)
-    for key in ("field_map", "raw_json", "risk_labels", "metadata_json", "payload_json"):
+    for key in ("field_map", "raw_json", "risk_labels", "metadata_json", "payload_json", "tags"):
         if key in data:
-            data[key] = loads(data[key], {} if key != "risk_labels" else [])
+            data[key] = loads(data[key], [] if key in {"risk_labels", "tags"} else {})
     return data
 
 
