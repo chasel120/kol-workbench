@@ -10,6 +10,26 @@ from . import importers
 from .secure_store import protect_text, unprotect_text
 from .storage import audit, connect, create_session, dumps, enqueue_sync, event, finish_session, new_id, now_iso, row_to_dict, rows_to_dicts
 
+LANGUAGE_NAMES = {
+    "en": "English",
+    "zh": "Chinese",
+    "de": "German",
+    "fr": "French",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "nl": "Dutch",
+    "pl": "Polish",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ar": "Arabic",
+}
+
+
+def language_name(language: str = "en") -> str:
+    code = (language or "en").strip().lower()
+    return LANGUAGE_NAMES.get(code, code or "English")
+
 
 def score_lead(row: dict[str, Any]) -> tuple[float, str]:
     score = 20.0
@@ -351,7 +371,7 @@ def generate_email_copy_with_model(kol: dict[str, Any], brief: str = "", languag
         )
     prompt = {
         "scenario": scenario,
-        "language": "Chinese" if language == "zh" else "English",
+        "language": language_name(language),
         "kol": {
             "name": kol.get("handle") or "there",
             "email": kol.get("email") or "",
@@ -370,7 +390,7 @@ def generate_email_copy_with_model(kol: dict[str, Any], brief: str = "", languag
         [
             {
                 "role": "system",
-                "content": "You write concise KOL outreach emails for BD teams. Return valid JSON only with keys subject and body. Do not promise price, commission, or samples unless explicitly provided. Keep the tone natural and require human review.",
+                "content": "You write concise KOL outreach emails for BD teams. Return valid JSON only with keys subject and body. Write the entire email in the requested target language, keeping brand, platform, and product names unchanged when appropriate. Do not promise price, commission, or samples unless explicitly provided. Keep the tone natural and require human review.",
             },
             {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
         ],
@@ -396,25 +416,130 @@ def email_copy(kol: dict[str, Any], brief: str = "", language: str = "en", templ
     handle = kol.get("handle") or "there"
     niche = kol.get("commerce_niche") or kol.get("category") or "your content niche"
     country = kol.get("country") or "your market"
-    if language == "zh":
-        subject = f"{handle}，想和你聊一个合作机会"
-        body = (
-            f"Hi {handle}，\n\n"
-            f"我们关注到你的 TikTok 内容，受众和 {country} 市场的 {niche} 方向比较匹配。"
-            "我们正在准备一个达人合作活动，希望先把产品信息和样品计划发给你看看。\n\n"
-            "如果你感兴趣，我们可以再根据你的内容风格沟通合作形式。\n\n"
-            "祝好，\nBD Team"
-        )
-    else:
-        subject = f"Collaboration idea for {handle}"
-        body = (
+    code = (language or "en").strip().lower()
+    fallback_templates = {
+        "zh": (
+            f"{handle}，想和你聊一个合作机会",
+            (
+                f"Hi {handle}，\n\n"
+                f"我们关注到你的 TikTok 内容，受众和 {country} 市场的 {niche} 方向比较匹配。"
+                "我们正在准备一个达人合作活动，希望先把产品信息和样品计划发给你看看。\n\n"
+                "如果你感兴趣，我们可以再根据你的内容风格沟通合作形式。\n\n"
+                "祝好，\nBD Team"
+            ),
+        ),
+        "de": (
+            f"Kooperationsidee fuer {handle}",
+            (
+                f"Hallo {handle},\n\n"
+                f"ich bin auf deine TikTok-Inhalte aufmerksam geworden und finde, dass dein Publikum gut zu {niche} in {country} passt. "
+                "Wir bereiten gerade eine Creator-Kampagne fuer praktische Produkte vor und wuerden dir gern die Produktinfos und den Musterplan schicken.\n\n"
+                "Waerst du offen, dir die Details anzusehen? Wenn es fuer dich relevant ist, koennen wir danach das passende Kooperationsformat besprechen.\n\n"
+                "Viele Gruesse,\nBD Team"
+            ),
+        ),
+        "fr": (
+            f"Idee de collaboration pour {handle}",
+            (
+                f"Bonjour {handle},\n\n"
+                f"j'ai decouvert votre contenu TikTok et votre audience semble bien correspondre a {niche} sur le marche {country}. "
+                "Nous preparons une campagne createur pour des produits pratiques et aimerions vous envoyer les informations produit et le plan d'echantillon.\n\n"
+                "Seriez-vous ouvert(e) a les consulter ? Si cela vous semble pertinent, nous pourrons discuter du format de collaboration.\n\n"
+                "Bien cordialement,\nBD Team"
+            ),
+        ),
+        "es": (
+            f"Idea de colaboracion para {handle}",
+            (
+                f"Hola {handle},\n\n"
+                f"encontramos tu contenido en TikTok y creemos que tu audiencia encaja bien con {niche} en {country}. "
+                "Estamos preparando una campana con creadores para productos practicos y nos gustaria enviarte la informacion del producto y el plan de muestra.\n\n"
+                "Te interesaria revisarlo? Si encaja con tu contenido, podemos hablar del formato de colaboracion.\n\n"
+                "Saludos,\nBD Team"
+            ),
+        ),
+        "it": (
+            f"Idea di collaborazione per {handle}",
+            (
+                f"Ciao {handle},\n\n"
+                f"ho visto i tuoi contenuti su TikTok e penso che il tuo pubblico sia in linea con {niche} in {country}. "
+                "Stiamo preparando una campagna creator per prodotti pratici e vorremmo inviarti le informazioni sul prodotto e il piano campioni.\n\n"
+                "Ti andrebbe di valutarli? Se ti sembrano adatti, possiamo poi discutere il formato della collaborazione.\n\n"
+                "Un saluto,\nBD Team"
+            ),
+        ),
+        "pt": (
+            f"Ideia de colaboracao para {handle}",
+            (
+                f"Ola {handle},\n\n"
+                f"encontrei seu conteudo no TikTok e percebi que sua audiencia combina bem com {niche} em {country}. "
+                "Estamos preparando uma campanha com criadores para produtos praticos e gostariamos de enviar as informacoes do produto e o plano de amostra.\n\n"
+                "Voce teria interesse em avaliar? Se fizer sentido, podemos conversar sobre o formato da cooperacao.\n\n"
+                "Atenciosamente,\nBD Team"
+            ),
+        ),
+        "nl": (
+            f"Samenwerkingsidee voor {handle}",
+            (
+                f"Hallo {handle},\n\n"
+                f"ik kwam je TikTok-content tegen en denk dat je publiek goed past bij {niche} in {country}. "
+                "We bereiden een creator-campagne voor praktische producten voor en sturen je graag de productinformatie en het sampleplan.\n\n"
+                "Sta je ervoor open om dit te bekijken? Als het relevant voelt, kunnen we daarna de samenwerkingsvorm bespreken.\n\n"
+                "Met vriendelijke groet,\nBD Team"
+            ),
+        ),
+        "pl": (
+            f"Pomysl na wspolprace dla {handle}",
+            (
+                f"Czesc {handle},\n\n"
+                f"trafilismy na Twoje tresci na TikToku i widzimy, ze Twoja publicznosc dobrze pasuje do {niche} w {country}. "
+                "Przygotowujemy kampanie creatorska dla praktycznych produktow i chetnie przeslemy informacje o produkcie oraz plan probek.\n\n"
+                "Czy chcesz to sprawdzic? Jesli bedzie to pasowalo do Twojego stylu, omowimy format wspolpracy.\n\n"
+                "Pozdrawiamy,\nBD Team"
+            ),
+        ),
+        "ja": (
+            f"{handle}さんへのコラボレーションのご提案",
+            (
+                f"{handle}さん、こんにちは。\n\n"
+                f"TikTokのコンテンツを拝見し、{country}市場の{niche}領域と相性がよいと感じました。"
+                "現在、実用的な商品のクリエイターキャンペーンを準備しており、商品情報とサンプル計画をお送りしたいと考えています。\n\n"
+                "ご興味があれば、まず内容をご確認いただけますでしょうか。合いそうであれば、投稿スタイルに合わせて協業形式を相談できれば幸いです。\n\n"
+                "よろしくお願いいたします。\nBD Team"
+            ),
+        ),
+        "ko": (
+            f"{handle}님께 드리는 협업 제안",
+            (
+                f"안녕하세요 {handle}님,\n\n"
+                f"TikTok 콘텐츠를 보고 {country} 시장의 {niche} 분야와 잘 맞는다고 느꼈습니다. "
+                "현재 실용적인 제품 관련 크리에이터 캠페인을 준비 중이며, 제품 정보와 샘플 계획을 먼저 공유드리고 싶습니다.\n\n"
+                "검토해 보실 의향이 있으실까요? 적합하다고 느끼시면 콘텐츠 스타일에 맞는 협업 방식을 함께 논의하겠습니다.\n\n"
+                "감사합니다.\nBD Team"
+            ),
+        ),
+        "ar": (
+            f"فرصة تعاون مع {handle}",
+            (
+                f"مرحباً {handle}،\n\n"
+                f"اطلعنا على محتواك في TikTok ولاحظنا أن جمهورك مناسب لفئة {niche} في {country}. "
+                "نحضّر حالياً حملة مع صناع محتوى لمنتجات عملية، ونود إرسال معلومات المنتج وخطة العينة لك للمراجعة.\n\n"
+                "هل ترغب في الاطلاع على التفاصيل؟ إذا كان الأمر مناسباً، يمكننا مناقشة شكل التعاون بعد ذلك.\n\n"
+                "مع التحية،\nBD Team"
+            ),
+        ),
+    }
+    subject, body = fallback_templates.get(code, (
+        f"Collaboration idea for {handle}",
+        (
             f"Hi {handle},\n\n"
             f"I came across your TikTok content and noticed your audience fits {niche} in {country}. "
             "We are preparing a creator campaign for practical products and would like to share the details with you.\n\n"
             "Would you be open to reviewing the product information and sample plan? "
             "If it looks relevant, we can discuss the cooperation format after your review.\n\n"
             "Best,\nBD Team"
-        )
+        ),
+    ))
     if brief.strip():
         body += f"\n\nReviewer note: {brief.strip()[:400]}"
     return subject, body
@@ -425,11 +550,6 @@ def get_default_template(conn: Any, language: str = "en", scenario: str = "first
         "SELECT * FROM reply_templates WHERE language = ? AND scenario = ? AND is_default = 1 ORDER BY updated_at DESC LIMIT 1",
         (language, scenario),
     ).fetchone()
-    if not row:
-        row = conn.execute(
-            "SELECT * FROM reply_templates WHERE scenario = ? AND is_default = 1 ORDER BY updated_at DESC LIMIT 1",
-            (scenario,),
-        ).fetchone()
     if not row:
         row = conn.execute(
             "SELECT * FROM reply_templates WHERE language = ? AND scenario = ? ORDER BY updated_at DESC LIMIT 1",
@@ -583,15 +703,16 @@ def delete_template(template_id: str) -> dict[str, Any]:
 
 
 def generate_template_ai(language: str = "en", scenario: str = "first_touch", brief: str = "") -> dict[str, Any]:
+    target_language = language_name(language)
     content = call_model(
         [
             {
                 "role": "system",
-                "content": "Create a reusable KOL outreach email template. Return valid JSON only with keys name, subject, body. The template must include dynamic fields such as {{kol_name}}, {{platform}}, {{country}}, {{niche}}, and {{brief}}.",
+                "content": "Create a reusable KOL outreach email template. Return valid JSON only with keys name, subject, body. Write the reusable template in the requested target language. The template must include dynamic fields such as {{kol_name}}, {{platform}}, {{country}}, {{niche}}, and {{brief}}.",
             },
             {
                 "role": "user",
-                "content": json.dumps({"language": language, "scenario": scenario, "campaign_brief": brief}, ensure_ascii=False),
+                "content": json.dumps({"language": target_language, "language_code": language, "scenario": scenario, "campaign_brief": brief}, ensure_ascii=False),
             },
         ],
         temperature=0.55,
@@ -734,7 +855,7 @@ def delete_mail_items(items: list[dict[str, Any]]) -> dict[str, Any]:
     return {"ok": True, "deleted": deleted_drafts + deleted_replies, "drafts": deleted_drafts, "replies": deleted_replies}
 
 
-def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: str = "needs_review") -> dict[str, Any]:
+def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: str = "needs_review", language: str = "en") -> dict[str, Any]:
     with connect() as conn:
         kol = row_to_dict(conn.execute("SELECT * FROM kol_leads WHERE id = ?", (kol_id,)).fetchone())
         if not kol:
@@ -755,7 +876,7 @@ def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: st
             "Best,\nBD Team\n\n"
             f"Reviewer note: {reply_text[:400]}"
         )
-        subject, body = generate_email_copy_with_model(kol, "", "en", None, "follow_up", reply_text)
+        subject, body = generate_email_copy_with_model(kol, "", language, None, "follow_up", reply_text)
         draft_id = new_id("draft")
         conn.execute(
             """
@@ -764,7 +885,7 @@ def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: st
             """,
             (draft_id, kol_id, kol.get("email", ""), account_email, subject, body, dumps(["manual_review_required", "follow_up"]), ts, ts),
         )
-        audit(conn, "reply.saved", "reply", reply_id, "保存回复并生成二次跟进草稿")
+        audit(conn, "reply.saved", "reply", reply_id, "保存回复并生成二次跟进草稿", {"language": language})
         enqueue_sync(conn, "reply_summaries", reply_id, {"id": reply_id, "kol_id": kol_id, "intent": intent, "next_action": next_action, "created_at": ts})
         return {"reply": row_to_dict(conn.execute("SELECT * FROM replies WHERE id = ?", (reply_id,)).fetchone()), "followupDraft": get_draft_by_id(conn, draft_id)}
 

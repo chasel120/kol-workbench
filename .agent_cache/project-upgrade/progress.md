@@ -170,3 +170,13 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added a visible template-library status line for default/delete actions.
 - Completed: default template setting now shows success, failure, and stale-Agent restart guidance instead of failing silently.
 - Completed: removed the duplicate `renderTemplateOptions()` definition.
+
+# 2026-08-22 Gmail Draft Multilingual Support
+
+- Completed: Gmail draft language is now a dedicated setting, separate from the UI panel language.
+- Completed: Agent language, generate-draft language, and template language selectors now support English, Chinese, German, French, Spanish, Italian, Portuguese, Dutch, Polish, Japanese, Korean, and Arabic.
+- Completed: model prompts now pass a clear target language name and instruct the model to write the full email/template in that language.
+- Completed: default template matching is language-specific; selecting German no longer silently falls back to an English default template.
+- Completed: manually logged Gmail replies can now choose the follow-up draft language, using the same multilingual language list.
+- Completed: local compatibility copy generation now has multilingual fallback text for major KOL outreach markets.
+- Validation: Python compile passed, frontend script parse passed, and multilingual copy smoke test passed with UTF-8 output.

@@ -424,3 +424,11 @@ Agent 入口应嵌入业务对象：
 - Template management is treated as a local Harness tool capability.
 - `save_template` handles create/update, and `delete_template` handles local deletion with audit logging.
 - Template deletion does not cascade into generated drafts because drafts are independent local runtime records after rendering.
+
+# 2026-08-22 Multilingual Outreach Harness Update
+
+- OutreachAgent now receives an explicit draft language code from the Desktop Shell and maps it to a readable target language for model prompts.
+- FollowupAgent receives the selected reply follow-up draft language through `/api/replies` instead of hard-coding English.
+- ModelRouter prompts must instruct the model to write the full subject/body in the requested language while preserving brand, platform, and product names when appropriate.
+- Default template lookup is language-scoped; Harness should not silently apply a default template from a different language.
+- Multilingual template generation uses the same local-only template tool path and must still pass through human review before any Gmail action.

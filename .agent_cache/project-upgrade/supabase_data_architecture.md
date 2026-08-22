@@ -593,3 +593,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Reply template subject/body are currently stored only in local SQLite.
 - Template create/update/delete actions are not synced to Supabase in the MVP.
 - A future shared template library may sync sanitized metadata or approved template versions, but must not sync model prompts, generated draft bodies, or raw reply content by default.
+
+# 2026-08-22 Multilingual Draft Data Boundary
+
+- Draft language codes may be used as non-sensitive metadata for local filtering and future business summaries.
+- Generated multilingual draft subject/body remain local-only runtime data and are not uploaded to Supabase by default.
+- Multilingual reply template subject/body remain local-only in the MVP.
+- If future shared template sync is approved, only explicitly approved template versions or sanitized metadata should be synced; model prompts and generated draft bodies remain excluded.

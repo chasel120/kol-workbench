@@ -154,3 +154,12 @@ Gmail 相关开发必须谨慎：
 - `setDefaultTemplate()` catches stale-route errors and writes a clear restart instruction into the template-library status line.
 - Template delete failures also write to the same status line.
 - Removed the duplicate `renderTemplateOptions()` function; the remaining version marks the current default in the generate-draft template dropdown.
+
+# 2026-08-22 Gmail Draft Multilingual Handoff
+
+- `desktop_shell/index.html` now supports draft/template language selection for `en`, `zh`, `de`, `fr`, `es`, `it`, `pt`, `nl`, `pl`, `ja`, `ko`, and `ar`.
+- `draftLanguage` is saved in browser local settings separately from `panelLanguage`.
+- `renderTemplateOptions()` now prioritizes templates that match the selected draft language and labels other-language templates.
+- `POST /api/replies` accepts `language` so reply follow-up drafts use the selected multilingual draft language.
+- `agent_runtime/harness.py` now maps language codes to readable names for model prompts and uses language-specific default-template lookup.
+- Restart `start_kol_workbench.bat` after pulling this change so the updated Python Harness prompt behavior is loaded.

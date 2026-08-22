@@ -149,7 +149,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(harness.delete_mail_items(body.get("items") or []))
                 return
             if path == "/api/replies":
-                result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"))
+                result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"), body.get("language", "en"))
                 self.send_json({"ok": True, **result})
                 return
             if path == "/api/templates":

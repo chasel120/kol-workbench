@@ -344,6 +344,16 @@
               <select id="agent-language">
                 <option value="en">English</option>
                 <option value="zh">中文</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="nl">Nederlands</option>
+                <option value="pl">Polski</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="ar">العربية</option>
               </select>
             </div>
           </section>
@@ -474,7 +484,20 @@
         <div class="form-grid">
           <label class="field">发送账号<input id="gen-account" list="gmail-account-options" placeholder="bd-de-01@gmail.com" value="bd-local@gmail.com" /><datalist id="gmail-account-options"></datalist></label>
           <label class="field">生成语言
-            <select id="gen-language"><option value="en">English</option><option value="zh">中文</option></select>
+            <select id="gen-language">
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="de">Deutsch</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+              <option value="it">Italiano</option>
+              <option value="pt">Português</option>
+              <option value="nl">Nederlands</option>
+              <option value="pl">Polski</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="ar">العربية</option>
+            </select>
           </label>
         </div>
         <label class="field">使用模板<select id="gen-template"></select></label>
@@ -496,7 +519,20 @@
         <input id="tpl-id" type="hidden" />
         <div class="form-grid">
           <label class="field">模板名称<input id="tpl-name" placeholder="德国居家日用首触达" /></label>
-          <label class="field">语言<select id="tpl-language"><option value="en">English</option><option value="zh">中文</option></select></label>
+          <label class="field">语言<select id="tpl-language">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
+            <option value="nl">Nederlands</option>
+            <option value="pl">Polski</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="ar">العربية</option>
+          </select></label>
         </div>
         <label class="field">主题<input id="tpl-subject" placeholder="Collaboration idea for {{kol_name}}" /></label>
         <label class="field">正文<textarea id="tpl-body" placeholder="Hi {{kol_name}}, ... {{brief}}"></textarea></label>
@@ -519,6 +555,20 @@
         <div class="form-grid">
           <label class="field">选择 KOL<select id="reply-kol"></select></label>
           <label class="field">来源账号<input id="reply-account" placeholder="bd-de-01@gmail.com" /></label>
+          <label class="field">跟进草稿语言<select id="reply-language">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
+            <option value="nl">Nederlands</option>
+            <option value="pl">Polski</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="ar">العربية</option>
+          </select></label>
         </div>
         <label class="field">意向分类
           <select id="reply-intent">
@@ -625,7 +675,24 @@
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
       const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
       const settingsKey = "kolWorkbenchSettings";
-      const defaultSettings = { panelLanguage: "zh", modelProvider: "openai", modelBaseUrl: "", modelName: "" };
+      const draftLanguages = [
+        ["en", "English"],
+        ["zh", "中文"],
+        ["de", "Deutsch"],
+        ["fr", "Français"],
+        ["es", "Español"],
+        ["it", "Italiano"],
+        ["pt", "Português"],
+        ["nl", "Nederlands"],
+        ["pl", "Polski"],
+        ["ja", "日本語"],
+        ["ko", "한국어"],
+        ["ar", "العربية"]
+      ];
+      const defaultSettings = { panelLanguage: "zh", modelProvider: "openai", modelBaseUrl: "", modelName: "", draftLanguage: "en" };
+      const supportedDraftLanguages = new Set(draftLanguages.map(([code]) => code));
+      const normalizeDraftLanguage = (value) => supportedDraftLanguages.has(value) ? value : "en";
+      const draftLanguageLabel = (value) => (draftLanguages.find(([code]) => code === value)?.[1] || value || "English");
       const i18n = {
         zh: {
           settings: "设置",
@@ -721,7 +788,8 @@
           panelLanguage: settings.panelLanguage,
           modelProvider: settings.modelProvider,
           modelBaseUrl: settings.modelBaseUrl,
-          modelName: settings.modelName
+          modelName: settings.modelName,
+          draftLanguage: normalizeDraftLanguage(settings.draftLanguage)
         }));
       }
 
@@ -734,12 +802,24 @@
         document.documentElement.lang = language === "en" ? "en" : "zh-CN";
       }
 
+      function applyDraftLanguage(language) {
+        const value = normalizeDraftLanguage(language);
+        $("#agent-language").value = value;
+        $("#gen-language").value = value;
+        $("#reply-language").value = value;
+        if (!$("#tpl-id")?.value) $("#tpl-language").value = value;
+        const settings = loadSettings();
+        saveSettingsValue({ ...settings, draftLanguage: value });
+        renderTemplateOptions();
+      }
+
       async function hydrateSettingsDialog() {
         const settings = loadSettings();
         $("#setting-language").value = settings.panelLanguage;
         $("#setting-api-key").value = "";
         $("#setting-api-key-action").value = "keep";
         applyPanelLanguage(settings.panelLanguage);
+        applyDraftLanguage(settings.draftLanguage || (settings.panelLanguage === "zh" ? "zh" : "en"));
         try {
           const result = await api("/api/settings");
           applySettingsState(result.settings);
@@ -1027,10 +1107,11 @@
       function renderTemplates() {
         $("#template-list").innerHTML = state.templates.map((tpl) => {
           const isDefault = Number(tpl.is_default || 0) === 1;
+          const language = draftLanguageLabel(tpl.language || "en");
           return `
             <div class="template-item" data-template-card="${esc(tpl.id)}">
               <b>${esc(tpl.name)}${isDefault ? `<span class="default-badge">默认</span>` : ""}</b>
-              <p>${esc(tpl.language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
+              <p>${esc(language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
               <div class="row-actions template-actions">
                 <button class="btn" data-edit-template="${esc(tpl.id)}">编辑</button>
                 <button class="btn" data-default-template="${esc(tpl.id)}" ${isDefault ? "disabled" : ""}>设默认</button>
@@ -1042,10 +1123,16 @@
       }
 
       function renderTemplateOptions() {
-        $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => {
+        const selectedLanguage = normalizeDraftLanguage($("#gen-language")?.value || $("#agent-language")?.value || "en");
+        const sameLanguage = state.templates.filter((tpl) => normalizeDraftLanguage(tpl.language || "en") === selectedLanguage);
+        const otherLanguages = state.templates.filter((tpl) => normalizeDraftLanguage(tpl.language || "en") !== selectedLanguage);
+        const options = [...sameLanguage, ...otherLanguages].map((tpl) => {
+          const language = draftLanguageLabel(tpl.language || "en");
           const mark = Number(tpl.is_default || 0) === 1 ? " · 默认" : "";
-          return `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}${mark}</option>`;
+          const suffix = normalizeDraftLanguage(tpl.language || "en") === selectedLanguage ? "" : " · 其他语言";
+          return `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(language)}${mark}${suffix}</option>`;
         }).join("");
+        $("#gen-template").innerHTML = `<option value="">Agent 默认模板（${esc(draftLanguageLabel(selectedLanguage))}）</option>` + options;
       }
 
       function renderReplyOptions() {
@@ -1076,7 +1163,8 @@
 
       function openGenerateDialog() {
         $("#generate-subtitle").textContent = `将为 ${state.selected.size || "自动选择高分"} 个 KOL 生成 Gmail 草稿。`;
-        $("#gen-language").value = $("#agent-language").value;
+        $("#gen-language").value = normalizeDraftLanguage($("#agent-language").value);
+        renderTemplateOptions();
         $("#generate-status").textContent = "待开始。草稿生成后会自动刷新 Gmail 草稿队列和 KOL 状态。";
         $$(".step").forEach((step, index) => step.classList.toggle("active", index === 0));
         $("#generate-dialog").showModal();
@@ -1124,7 +1212,7 @@
           limit: 20,
           brief: $("#gen-brief").value,
           fromAccount: $("#gen-account").value,
-          language: $("#gen-language").value,
+          language: normalizeDraftLanguage($("#gen-language").value),
           templateId: $("#gen-template").value
         };
         const result = await api("/api/drafts/generate", { method: "POST", body: JSON.stringify(payload) });
@@ -1161,7 +1249,7 @@
       function resetTemplateDialog() {
         $("#tpl-id").value = "";
         $("#tpl-name").value = "";
-        $("#tpl-language").value = $("#gen-language")?.value || state.settings?.language || "en";
+        $("#tpl-language").value = normalizeDraftLanguage($("#gen-language")?.value || $("#agent-language")?.value || "en");
         $("#tpl-subject").value = "";
         $("#tpl-body").value = "";
         $("#template-toast").textContent = "";
@@ -1172,7 +1260,7 @@
         if (!tpl) return;
         $("#tpl-id").value = tpl.id;
         $("#tpl-name").value = tpl.name || "";
-        $("#tpl-language").value = tpl.language || "en";
+        $("#tpl-language").value = normalizeDraftLanguage(tpl.language || "en");
         $("#tpl-subject").value = tpl.subject || "";
         $("#tpl-body").value = tpl.body || "";
         $("#template-toast").textContent = "正在编辑现有模板，保存后会覆盖该模板。";
@@ -1213,9 +1301,9 @@
       }
 
       async function fillAiTemplate() {
-        const result = await api("/api/templates/ai", { method: "POST", body: JSON.stringify({ language: $("#tpl-language").value, scenario: "first_touch", brief: $("#gen-brief")?.value || "" }) });
+        const result = await api("/api/templates/ai", { method: "POST", body: JSON.stringify({ language: normalizeDraftLanguage($("#tpl-language").value), scenario: "first_touch", brief: $("#gen-brief")?.value || "" }) });
         $("#tpl-name").value = result.template.name;
-        $("#tpl-language").value = result.template.language;
+        $("#tpl-language").value = normalizeDraftLanguage(result.template.language);
         $("#tpl-subject").value = result.template.subject;
         $("#tpl-body").value = result.template.body;
         $("#template-toast").textContent = "AI 模板已生成，请确认后保存。";
@@ -1227,7 +1315,7 @@
           body: JSON.stringify({
             id: $("#tpl-id").value,
             name: $("#tpl-name").value,
-            language: $("#tpl-language").value,
+            language: normalizeDraftLanguage($("#tpl-language").value),
             scenario: "first_touch",
             subject: $("#tpl-subject").value,
             body: $("#tpl-body").value,
@@ -1245,7 +1333,7 @@
           body: JSON.stringify({
             id: $("#tpl-id").value,
             name: $("#tpl-name").value,
-            language: $("#tpl-language").value,
+            language: normalizeDraftLanguage($("#tpl-language").value),
             scenario: "first_touch",
             subject: $("#tpl-subject").value,
             body: $("#tpl-body").value,
@@ -1264,7 +1352,7 @@
           $("#reply-toast").textContent = "请选择 KOL 并填写回复内容。";
           return;
         }
-        await api("/api/replies", { method: "POST", body: JSON.stringify({ kolId, replyText, accountEmail: $("#reply-account").value, intent: $("#reply-intent").value }) });
+        await api("/api/replies", { method: "POST", body: JSON.stringify({ kolId, replyText, accountEmail: $("#reply-account").value, intent: $("#reply-intent").value, language: normalizeDraftLanguage($("#reply-language").value) }) });
         $("#reply-toast").textContent = "已保存回复，并生成二次跟进草稿。";
         await refresh();
       }
@@ -1281,12 +1369,12 @@
           panelLanguage: $("#setting-language").value,
           modelProvider: $("#setting-model-provider").value,
           modelBaseUrl: $("#setting-model-base-url").value.trim(),
-          modelName: $("#setting-model-name").value.trim()
+          modelName: $("#setting-model-name").value.trim(),
+          draftLanguage: $("#agent-language").value
         };
         saveSettingsValue(settings);
         applyPanelLanguage(settings.panelLanguage);
-        $("#agent-language").value = settings.panelLanguage === "en" ? "en" : "zh";
-        $("#gen-language").value = $("#agent-language").value;
+        applyDraftLanguage(settings.draftLanguage);
         $("#setting-api-key").value = "";
         $("#settings-toast").textContent = settings.panelLanguage === "en"
           ? "Settings saved. API Key was not stored."
@@ -1298,7 +1386,8 @@
           panelLanguage: $("#setting-language").value,
           modelProvider: $("#setting-model-provider").value,
           modelBaseUrl: $("#setting-model-base-url").value.trim(),
-          modelName: $("#setting-model-name").value.trim()
+          modelName: $("#setting-model-name").value.trim(),
+          draftLanguage: $("#agent-language").value
         };
         saveSettingsValue(settings);
         api("/api/settings/model", {
@@ -1312,8 +1401,7 @@
           })
         }).then((result) => {
           applyPanelLanguage(settings.panelLanguage);
-          $("#agent-language").value = settings.panelLanguage === "en" ? "en" : "zh";
-          $("#gen-language").value = $("#agent-language").value;
+          applyDraftLanguage(settings.draftLanguage);
           $("#setting-api-key").value = "";
           $("#setting-api-key-action").value = "keep";
           applySettingsState({ model: result.model, gmailAccounts: state.gmailAccounts, user: state.user });
@@ -1600,7 +1688,12 @@
         $("#import").addEventListener("click", importData);
         $("#save-reply").addEventListener("click", saveReply);
         $("#sync").addEventListener("click", syncSupabase);
-        $("#agent-language").addEventListener("change", () => { $("#gen-language").value = $("#agent-language").value; });
+        $("#agent-language").addEventListener("change", () => applyDraftLanguage($("#agent-language").value));
+        $("#gen-language").addEventListener("change", () => {
+          applyDraftLanguage($("#gen-language").value);
+          $("#gen-language").value = normalizeDraftLanguage($("#agent-language").value);
+        });
+        $("#reply-language").addEventListener("change", () => applyDraftLanguage($("#reply-language").value));
       }
 
       hydrateSettingsDialog();

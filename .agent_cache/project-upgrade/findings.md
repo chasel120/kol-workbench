@@ -115,3 +115,12 @@
 - Default template selection cannot be polyfilled against the stale backend because older Agent builds do not expose `/api/templates/default`.
 - `set_default_template()` works in the current Harness code and keeps exactly one default for a language/scenario pair.
 - The desktop shell previously did not catch errors from `setDefaultTemplate()`, so a missing backend route looked like no UI response.
+
+# 2026-08-22 Gmail Draft Multilingual Findings
+
+- Gmail draft language must be treated as an outreach content setting, not as the same thing as the UI panel language.
+- The previous default-template lookup could reuse a default template from another language, which could make a German or Japanese generation inherit English wording.
+- Reply follow-up draft generation was previously hard-coded to English and needed to share the same draft language path as first-touch generation.
+- The model prompt needs both a readable language name and a strict instruction to write the entire email/template in the selected language.
+- Reply template metadata can store arbitrary language codes locally; no SQLite migration is required for multilingual template support.
+- Draft subject/body remain local runtime data and must not be synced to Supabase by default, regardless of language.

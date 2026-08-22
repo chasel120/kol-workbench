@@ -325,3 +325,12 @@ MVP 暂不完成：
 - Editing reuses the existing template dialog and pre-fills name, language, subject, and body.
 - Deleting requires explicit confirmation and only removes the reusable template, not already generated Gmail drafts.
 - Add Template and AI Template actions reset the dialog into create mode before generating or saving new content.
+
+# 2026-08-22 Gmail Draft Multilingual UI Update
+
+- Gmail draft language is a first-class outreach setting, separate from the UI panel language.
+- Agent language, generate-draft language, and template language controls support English, Chinese, German, French, Spanish, Italian, Portuguese, Dutch, Polish, Japanese, Korean, and Arabic.
+- The generate-draft template dropdown should prioritize templates in the selected draft language and visibly label templates from other languages.
+- If no default template exists for the selected language, the Agent should generate directly in that language instead of silently using another language's default template.
+- Reply logging should include a follow-up draft language selector and default to the current Agent draft language.
+- Multilingual templates remain editable/deletable in the local template library and keep support for dynamic fields such as `{{kol_name}}`, `{{country}}`, `{{niche}}`, and `{{brief}}`.

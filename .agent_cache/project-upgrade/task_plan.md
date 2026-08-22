@@ -134,3 +134,11 @@
 - Completed: add local Agent route for deleting templates.
 - Completed: keep reply template body/subject local-only, matching the Supabase data boundary.
 - Next: add richer template categorization only after the core Gmail/OAuth safety design is settled.
+
+# 2026-08-22 Gmail Draft Multilingual Plan Update
+
+- Completed: make Gmail draft language independent from panel language.
+- Completed: extend draft/template language controls to major outreach markets.
+- Completed: update Harness prompts and default-template lookup so selected language is respected.
+- Completed: route manual reply follow-up draft generation through the selected draft language.
+- Next: when Gmail OAuth is implemented, store and display per-recipient preferred language metadata without uploading generated draft bodies to Supabase.
