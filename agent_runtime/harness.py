@@ -528,6 +528,18 @@ def save_template(name: str, subject: str, body: str, language: str = "en", scen
         return row_to_dict(conn.execute("SELECT * FROM reply_templates WHERE id = ?", (new_template_id,)).fetchone()) or {}
 
 
+def delete_template(template_id: str) -> dict[str, Any]:
+    if not template_id:
+        raise ValueError("Template id is required.")
+    with connect() as conn:
+        existing = row_to_dict(conn.execute("SELECT id, name FROM reply_templates WHERE id = ?", (template_id,)).fetchone())
+        if not existing:
+            raise ValueError("Template does not exist.")
+        conn.execute("DELETE FROM reply_templates WHERE id = ?", (template_id,))
+        audit(conn, "template.deleted", "reply_template", template_id, f"Deleted template: {existing.get('name', template_id)}")
+        return {"ok": True, "deleted": template_id}
+
+
 def generate_template_ai(language: str = "en", scenario: str = "first_touch", brief: str = "") -> dict[str, Any]:
     content = call_model(
         [

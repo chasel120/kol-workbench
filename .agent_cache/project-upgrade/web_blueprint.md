@@ -311,3 +311,9 @@ MVP 暂不完成：
 - 文案生成必须通过 ModelRouter/Harness 调用模型，生成失败应展示明确错误并停留在人工操作界面。
 - Gmail 草稿队列需要生命周期操作：预览、人工确认发送、存档、恢复、删除。
 - Gmail 授权配置 MVP 只保存邮箱、浏览器名称、Profile 路径和备注；不得读取或保存 Gmail 密码、cookie、2FA 或浏览器登录态。
+# 2026-08-22 Reply Template UI Update
+
+- Template Library cards must provide Edit and Delete actions.
+- Editing reuses the existing template dialog and pre-fills name, language, subject, and body.
+- Deleting requires explicit confirmation and only removes the reusable template, not already generated Gmail drafts.
+- Add Template and AI Template actions reset the dialog into create mode before generating or saving new content.

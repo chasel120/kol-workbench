@@ -117,3 +117,10 @@ Gmail 相关开发必须谨慎：
 - `desktop_shell/index.html` 新增全量全选、账号入口、设置内 Gmail 配置、已存档 Tab、草稿删除/存档按钮。
 - 当前真实 Gmail OAuth 仍未实现，只保存多浏览器授权占位配置；真实授权和发送仍需后续明确安全方案。
 - 本轮后必须重启本地 Agent 服务，旧 8766 进程不会自动加载新增 Python 接口。
+# 2026-08-22 Reply Template Handoff
+
+- `desktop_shell/index.html` now renders Edit/Delete actions for each reply template card.
+- `#template-dialog` uses hidden `#tpl-id` to distinguish create vs update.
+- `POST /api/templates/delete` deletes a local reply template by id.
+- Existing drafts are not deleted when a template is deleted; drafts keep their already-rendered subject/body.
+- If the local Agent service is already running, restart `start_kol_workbench.bat` so the new Python route is loaded.

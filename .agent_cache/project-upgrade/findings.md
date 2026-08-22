@@ -85,3 +85,8 @@
 - 所有文案生成应从 Harness 调用模型，静态模板只能作为旧代码遗留，不作为正式生成路径。
 - Gmail 多浏览器配置当前只能做授权占位和账号队列配置，不能保存 Gmail 密码、cookie 或浏览器登录态。
 - 草稿需要生命周期管理：pending_review、sent_recorded、archived，以及本地删除。
+# 2026-08-22 Reply Template Findings
+
+- The existing `save_template` Harness function already supported update by id, but the desktop shell did not expose edit controls or send the id when saving.
+- The local API had list/create/update template routes, but no delete route.
+- Reply template content can contain reusable outreach wording and dynamic fields, so it must remain local-only unless a future explicit sanitized sync design is approved.

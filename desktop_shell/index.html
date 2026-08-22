@@ -232,6 +232,8 @@
       .template-item { border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: var(--soft); }
       .template-item b { font-size: 13px; }
       .template-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .template-actions { margin-top: 8px; justify-content: flex-start; }
+      .template-actions .btn { padding: 5px 9px; font-size: 12px; }
       .settings-section { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfdff; display: grid; gap: 10px; }
       .settings-section h3 { margin: 0; font-size: 14px; }
       .settings-list { display: grid; gap: 8px; max-height: 150px; overflow: auto; }
@@ -480,6 +482,7 @@
         <button class="btn" data-close>关闭</button>
       </div>
       <div class="dialog-body">
+        <input id="tpl-id" type="hidden" />
         <div class="form-grid">
           <label class="field">模板名称<input id="tpl-name" placeholder="德国居家日用首触达" /></label>
           <label class="field">语言<select id="tpl-language"><option value="en">English</option><option value="zh">中文</option></select></label>
@@ -938,6 +941,19 @@
         `).join("") || `<div class="empty">暂无模板。</div>`;
       }
 
+      function renderTemplates() {
+        $("#template-list").innerHTML = state.templates.map((tpl) => `
+          <div class="template-item" data-template-card="${esc(tpl.id)}">
+            <b>${esc(tpl.name)}</b>
+            <p>${esc(tpl.language)} · ${esc(tpl.scenario)} · ${esc(tpl.subject)}</p>
+            <div class="row-actions template-actions">
+              <button class="btn" data-edit-template="${esc(tpl.id)}">编辑</button>
+              <button class="btn" data-delete-template="${esc(tpl.id)}">删除</button>
+            </div>
+          </div>
+        `).join("") || `<div class="empty">暂无模板。点击添加模板或 AI 生成模板创建。</div>`;
+      }
+
       function renderTemplateOptions() {
         $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}</option>`).join("");
       }
@@ -1052,6 +1068,35 @@
         await refresh();
       }
 
+      function resetTemplateDialog() {
+        $("#tpl-id").value = "";
+        $("#tpl-name").value = "";
+        $("#tpl-language").value = $("#gen-language")?.value || state.settings?.language || "en";
+        $("#tpl-subject").value = "";
+        $("#tpl-body").value = "";
+        $("#template-toast").textContent = "";
+      }
+
+      function editTemplate(id) {
+        const tpl = state.templates.find((item) => item.id === id);
+        if (!tpl) return;
+        $("#tpl-id").value = tpl.id;
+        $("#tpl-name").value = tpl.name || "";
+        $("#tpl-language").value = tpl.language || "en";
+        $("#tpl-subject").value = tpl.subject || "";
+        $("#tpl-body").value = tpl.body || "";
+        $("#template-toast").textContent = "正在编辑现有模板，保存后会覆盖该模板。";
+        $("#template-dialog").showModal();
+      }
+
+      async function deleteTemplate(id) {
+        const tpl = state.templates.find((item) => item.id === id);
+        if (!tpl) return;
+        if (!confirm(`删除回复模板「${tpl.name}」？已生成的草稿不会被删除。`)) return;
+        await api("/api/templates/delete", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        await refresh();
+      }
+
       async function fillAiTemplate() {
         const result = await api("/api/templates/ai", { method: "POST", body: JSON.stringify({ language: $("#tpl-language").value, scenario: "first_touch", brief: $("#gen-brief")?.value || "" }) });
         $("#tpl-name").value = result.template.name;
@@ -1065,6 +1110,7 @@
         const result = await api("/api/templates", {
           method: "POST",
           body: JSON.stringify({
+            id: $("#tpl-id").value,
             name: $("#tpl-name").value,
             language: $("#tpl-language").value,
             scenario: "first_touch",
@@ -1074,6 +1120,25 @@
           })
         });
         $("#template-toast").textContent = `已保存模板：${result.template.name}`;
+        await refresh();
+      }
+
+      async function saveTemplate() {
+        const editing = Boolean($("#tpl-id").value);
+        const result = await api("/api/templates", {
+          method: "POST",
+          body: JSON.stringify({
+            id: $("#tpl-id").value,
+            name: $("#tpl-name").value,
+            language: $("#tpl-language").value,
+            scenario: "first_touch",
+            subject: $("#tpl-subject").value,
+            body: $("#tpl-body").value,
+            tags: ["manual"]
+          })
+        });
+        $("#tpl-id").value = result.template.id || "";
+        $("#template-toast").textContent = editing ? `已更新模板：${result.template.name}` : `已保存模板：${result.template.name}`;
         await refresh();
       }
 
@@ -1324,7 +1389,14 @@
           $("#generate-status").textContent = `生成失败：${err.message}`;
           $("#run-generate").disabled = false;
         }));
-        $("#ai-template").addEventListener("click", () => { $("#template-dialog").showModal(); fillAiTemplate(); });
+        $$("[data-open='template-dialog']").forEach((button) => button.addEventListener("click", resetTemplateDialog));
+        $("#template-list").addEventListener("click", (event) => {
+          const editId = event.target.dataset.editTemplate;
+          const deleteId = event.target.dataset.deleteTemplate;
+          if (editId) editTemplate(editId);
+          if (deleteId) deleteTemplate(deleteId);
+        });
+        $("#ai-template").addEventListener("click", () => { resetTemplateDialog(); $("#template-dialog").showModal(); fillAiTemplate(); });
         $("#fill-ai-template").addEventListener("click", fillAiTemplate);
         $("#save-template").addEventListener("click", saveTemplate);
         $("#import").addEventListener("click", importData);

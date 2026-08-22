@@ -120,3 +120,9 @@
 - 下一步：设计真实 Google OAuth + Gmail API 授权流程，明确多浏览器配置与 Gmail API 账号之间的映射。
 - 下一步：补充模型调用的重试、限流、失败恢复、批量生成进度事件。
 - 下一步：将本地加密凭据迁移为可选的系统凭据库或后续加密数据库方案。
+# 2026-08-22 Reply Template Plan Update
+
+- Completed: expose reply template edit/delete in the desktop shell.
+- Completed: add local Agent route for deleting templates.
+- Completed: keep reply template body/subject local-only, matching the Supabase data boundary.
+- Next: add richer template categorization only after the core Gmail/OAuth safety design is settled.

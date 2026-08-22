@@ -581,3 +581,8 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - 开发期账号占位资料保存在本地 SQLite `local_user_profiles`；密码和正式登录凭据尚未实现。
 - 草稿正文仍本地保存；草稿状态可变为 `pending_review`、`sent_recorded`、`archived`，删除为本地硬删除。
 - 后续如果将加密凭据放入数据库，需要重新设计密钥管理、轮换和访问审计；不得直接把明文 token/API Key 上传 Supabase。
+# 2026-08-22 Reply Template Data Boundary
+
+- Reply template subject/body are currently stored only in local SQLite.
+- Template create/update/delete actions are not synced to Supabase in the MVP.
+- A future shared template library may sync sanitized metadata or approved template versions, but must not sync model prompts, generated draft bodies, or raw reply content by default.
