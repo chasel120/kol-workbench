@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+data/
+kol_agent_data/
+*.sqlite3
+*.sqlite3-*
+.env
+*.log
+node_modules/
+dist/
+build/
