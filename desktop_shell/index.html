@@ -174,6 +174,16 @@
       .template-item { border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: var(--soft); }
       .template-item b { font-size: 13px; }
       .template-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .focus-pulse {
+        animation: focusPulse 1.2s ease;
+        border-color: #8bb8ff !important;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.13), var(--shadow) !important;
+      }
+      @keyframes focusPulse {
+        0% { transform: translateY(0); }
+        35% { transform: translateY(-2px); }
+        100% { transform: translateY(0); }
+      }
       .notice { border: 1px solid #b9d5ff; border-radius: 8px; padding: 10px; color: #1e3d70; background: #eef5ff; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
       .toast { min-height: 26px; color: #166534; font-size: 13px; }
       .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; background: #fbfdff; }
@@ -214,10 +224,10 @@
           <span>本地 Agent 计算 · Supabase 业务库 · 会话本地保存</span>
         </div>
         <nav class="nav">
-          <button class="active"><span class="glyph">L</span><span class="nav-label">线索池</span></button>
-          <button><span class="glyph">G</span><span class="nav-label">Gmail</span></button>
-          <button><span class="glyph">T</span><span class="nav-label">模板库</span></button>
-          <button><span class="glyph">S</span><span class="nav-label">Supabase</span></button>
+          <button class="active" data-nav="leads"><span class="glyph">L</span><span class="nav-label">线索池</span></button>
+          <button data-nav="gmail"><span class="glyph">G</span><span class="nav-label">Gmail</span></button>
+          <button data-nav="templates"><span class="glyph">T</span><span class="nav-label">模板库</span></button>
+          <button data-nav="supabase"><span class="glyph">S</span><span class="nav-label">Supabase</span></button>
         </nav>
         <div class="side-note">外发内容必须人工确认；Agent 会话、原始邮件、Prompt 和密钥不上传 Supabase。</div>
       </aside>
@@ -255,7 +265,7 @@
           </section>
 
           <section class="workspace">
-            <section class="panel">
+            <section class="panel" id="lead-panel">
               <div class="panel-head">
                 <div>
                   <h2>KOL 线索池</h2>
@@ -295,7 +305,7 @@
             </section>
 
             <section class="gmail-layout">
-              <section class="panel">
+              <section class="panel" id="gmail-panel">
                 <div class="panel-head">
                   <div>
                     <h2>Gmail</h2>
@@ -313,7 +323,7 @@
                   <div class="gmail-grid">
                     <div class="queue" id="gmail-list"></div>
                     <aside class="side-stack">
-                      <div class="mini-card">
+                      <div class="mini-card" id="template-section">
                         <h3>回复模板库</h3>
                         <p>支持 {{kol_name}}、{{country}}、{{niche}}、{{platform}}、{{brief}} 等动态字段。</p>
                         <div style="height:10px"></div>
@@ -323,7 +333,7 @@
                         </div>
                       </div>
                       <div class="template-list" id="template-list"></div>
-                      <div class="mini-card">
+                      <div class="mini-card" id="supabase-section">
                         <h3>Supabase 数据边界</h3>
                         <p id="supabase-status">检查中...</p>
                         <div style="height:10px"></div>
@@ -689,9 +699,54 @@
         $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.gmailTab === state.gmailTab));
       }
 
+      function pulseElement(element) {
+        if (!element) return;
+        element.classList.remove("focus-pulse");
+        void element.offsetWidth;
+        element.classList.add("focus-pulse");
+        setTimeout(() => element.classList.remove("focus-pulse"), 1300);
+      }
+
+      function focusPanel(selector) {
+        const element = $(selector);
+        if (!element) return;
+        const panel = element.closest(".panel");
+        panel?.classList.remove("is-collapsed");
+        panel?.querySelector(".collapse-panel") && (panel.querySelector(".collapse-panel").textContent = "收缩");
+        element.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        pulseElement(element);
+      }
+
+      function setNavActive(target) {
+        $$(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.nav === target));
+      }
+
+      function handleNav(target) {
+        setNavActive(target);
+        if (target === "leads") {
+          focusPanel("#lead-panel");
+          return;
+        }
+        if (target === "gmail") {
+          state.gmailTab = "drafts";
+          activateGmailTab();
+          renderGmail();
+          focusPanel("#gmail-panel");
+          return;
+        }
+        if (target === "templates") {
+          focusPanel("#template-section");
+          return;
+        }
+        if (target === "supabase") {
+          focusPanel("#supabase-section");
+        }
+      }
+
       function bind() {
         $$("[data-open]").forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.open).showModal()));
         $$("[data-close]").forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
+        $$(".nav button").forEach((button) => button.addEventListener("click", () => handleNav(button.dataset.nav)));
         $$(".collapse-panel").forEach((button) => button.addEventListener("click", () => {
           const panel = button.closest(".panel");
           const collapsed = panel.classList.toggle("is-collapsed");
