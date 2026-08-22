@@ -163,3 +163,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: removed duplicate `renderTemplates()` definitions from the desktop shell and kept the single default/edit/delete-capable renderer.
 - Completed: made template action event delegation use `closest()` so button clicks remain stable if nested content is added later.
 - Completed: added a clear stale-Agent error message for template deletion when the local backend has not loaded the delete route.
+
+# 2026-08-22 Default Template Feedback Fix
+
+- Completed: confirmed the live `127.0.0.1:8766` Agent returned `{"error":"not found"}` for `POST /api/templates/default`, so the user's current failure is caused by the same stale backend process issue.
+- Completed: added a visible template-library status line for default/delete actions.
+- Completed: default template setting now shows success, failure, and stale-Agent restart guidance instead of failing silently.
+- Completed: removed the duplicate `renderTemplateOptions()` definition.

@@ -429,6 +429,7 @@
                         </div>
                       </div>
                       <div class="template-list" id="template-list"></div>
+                      <div class="toast" id="template-library-toast"></div>
                       <div class="mini-card" id="supabase-section">
                         <h3 data-i18n="supabaseBoundary">Supabase 数据边界</h3>
                         <p id="supabase-status">检查中...</p>
@@ -1041,10 +1042,6 @@
       }
 
       function renderTemplateOptions() {
-        $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}</option>`).join("");
-      }
-
-      function renderTemplateOptions() {
         $("#gen-template").innerHTML = `<option value="">Agent 默认模板</option>` + state.templates.map((tpl) => {
           const mark = Number(tpl.is_default || 0) === 1 ? " · 默认" : "";
           return `<option value="${esc(tpl.id)}">${esc(tpl.name)} · ${esc(tpl.language)}${mark}</option>`;
@@ -1186,6 +1183,7 @@
         const tpl = state.templates.find((item) => item.id === id);
         if (!tpl) return;
         if (!confirm(`删除回复模板「${tpl.name}」？已生成的草稿不会被删除。`)) return;
+        $("#template-library-toast").textContent = "正在删除模板...";
         try {
           await api("/api/templates/delete", { method: "POST", body: JSON.stringify({ templateId: id }) });
         } catch (err) {
@@ -1195,11 +1193,23 @@
           throw err;
         }
         await refresh();
+        $("#template-library-toast").textContent = `已删除模板：${tpl.name}`;
       }
 
       async function setDefaultTemplate(id) {
-        await api("/api/templates/default", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        const tpl = state.templates.find((item) => item.id === id);
+        if (!tpl) return;
+        $("#template-library-toast").textContent = "正在设置默认模板...";
+        try {
+          await api("/api/templates/default", { method: "POST", body: JSON.stringify({ templateId: id }) });
+        } catch (err) {
+          if (isMissingBatchRoute(err)) {
+            throw new Error("当前本地 Agent 版本过旧，尚未加载默认模板接口。请关闭旧的 start_kol_workbench.bat 窗口，重新启动后刷新页面。");
+          }
+          throw err;
+        }
         await refresh();
+        $("#template-library-toast").textContent = `已设为默认模板：${tpl.name}`;
       }
 
       async function fillAiTemplate() {
@@ -1581,8 +1591,8 @@
           const deleteId = action.dataset.deleteTemplate;
           const defaultId = action.dataset.defaultTemplate;
           if (editId) editTemplate(editId);
-          if (deleteId) deleteTemplate(deleteId);
-          if (defaultId) setDefaultTemplate(defaultId);
+          if (deleteId) deleteTemplate(deleteId).catch((err) => { $("#template-library-toast").textContent = `删除失败：${err.message}`; });
+          if (defaultId) setDefaultTemplate(defaultId).catch((err) => { $("#template-library-toast").textContent = `设置默认失败：${err.message}`; });
         });
         $("#ai-template").addEventListener("click", () => { resetTemplateDialog(); $("#template-dialog").showModal(); fillAiTemplate(); });
         $("#fill-ai-template").addEventListener("click", fillAiTemplate);

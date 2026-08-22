@@ -147,3 +147,10 @@ Gmail 相关开发必须谨慎：
 - Template action clicks use event delegation via `closest("[data-edit-template], [data-delete-template], [data-default-template]")`.
 - If `/api/templates/delete` returns `not found`, the UI now tells the user the local Agent is stale and must be restarted.
 - Current-code smoke validation passed for creating a template, setting it as default, deleting it, and assigning a fallback default.
+
+# 2026-08-22 Default Template Handoff
+
+- `desktop_shell/index.html` now renders `#template-library-toast` below the template list.
+- `setDefaultTemplate()` catches stale-route errors and writes a clear restart instruction into the template-library status line.
+- Template delete failures also write to the same status line.
+- Removed the duplicate `renderTemplateOptions()` function; the remaining version marks the current default in the generate-draft template dropdown.

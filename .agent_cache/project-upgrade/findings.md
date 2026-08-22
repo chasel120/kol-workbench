@@ -109,3 +109,9 @@
 - Template deletion cannot be polyfilled against the stale backend because older Agent builds do not expose any template delete route.
 - The desktop shell had three `renderTemplates()` definitions; JavaScript used the last one, but the duplicates created unnecessary maintenance risk.
 - The Harness `delete_template()` path is valid in the current code and correctly reassigns a fallback default template when deleting the current default.
+
+# 2026-08-22 Default Template Findings
+
+- Default template selection cannot be polyfilled against the stale backend because older Agent builds do not expose `/api/templates/default`.
+- `set_default_template()` works in the current Harness code and keeps exactly one default for a language/scenario pair.
+- The desktop shell previously did not catch errors from `setDefaultTemplate()`, so a missing backend route looked like no UI response.
