@@ -78,3 +78,10 @@
 - 模型配置不能只依赖手填模型名，用户需要从 Provider 自动拉取支持模型。已新增 `/api/models/list`，由本地 Agent 临时使用 Base URL 与 API Key 拉取模型列表。
 - 模型 API Key 仍属于高敏凭据，本次实现仅用于请求，不保存到桌面 Shell、SQLite 或 Supabase。
 - 运行中的旧本地 Agent 进程不会自动加载 Python 后端代码变更；若已经启动过，需要重启 `start_kol_workbench.bat` 后模型拉取接口才会生效。
+# 2026-08-22 本轮发现
+
+- “全选”需要区分当前可见列表和当前筛选条件下全部可触达 KOL；已新增 `/api/kols/ids` 支持全量选择。
+- 模型 API Key 可以在本地阶段使用 Windows DPAPI 加密保存到 SQLite；桌面 Shell 只通过本地 Agent API 提交，不写 localStorage。
+- 所有文案生成应从 Harness 调用模型，静态模板只能作为旧代码遗留，不作为正式生成路径。
+- Gmail 多浏览器配置当前只能做授权占位和账号队列配置，不能保存 Gmail 密码、cookie 或浏览器登录态。
+- 草稿需要生命周期管理：pending_review、sent_recorded、archived，以及本地删除。

@@ -7,6 +7,7 @@ import urllib.request
 from typing import Any
 
 from . import importers
+from .secure_store import protect_text, unprotect_text
 from .storage import audit, connect, create_session, dumps, enqueue_sync, event, finish_session, new_id, now_iso, row_to_dict, rows_to_dicts
 
 
@@ -147,6 +148,128 @@ def list_kols(query: str = "", priority: str = "", status: str = "", tag: str = 
         return rows_to_dicts(conn.execute(sql, params).fetchall())
 
 
+def list_kol_ids(query: str = "", priority: str = "", status: str = "", tag: str = "", only_reachable: bool = True, limit: int = 5000) -> list[str]:
+    sql = "SELECT id FROM kol_leads WHERE 1=1"
+    params: list[Any] = []
+    if only_reachable:
+        sql += " AND email IS NOT NULL AND email != ''"
+    if query:
+        sql += " AND (handle LIKE ? OR email LIKE ? OR homepage_url LIKE ? OR category LIKE ?)"
+        term = f"%{query}%"
+        params.extend([term, term, term, term])
+    if priority:
+        sql += " AND priority = ?"
+        params.append(priority)
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    if tag:
+        sql += " AND tags LIKE ?"
+        params.append(f"%{tag}%")
+    sql += " ORDER BY score DESC, updated_at DESC LIMIT ?"
+    params.append(max(1, min(limit, 5000)))
+    with connect() as conn:
+        return [row["id"] for row in conn.execute(sql, params).fetchall()]
+
+
+def _set_setting(conn: Any, key: str, value: str, sensitive: bool = False) -> None:
+    conn.execute(
+        """
+        INSERT INTO app_settings (key, value, sensitive, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, sensitive = excluded.sensitive, updated_at = excluded.updated_at
+        """,
+        (key, value, 1 if sensitive else 0, now_iso()),
+    )
+
+
+def _get_setting(conn: Any, key: str, default: str = "") -> str:
+    row = conn.execute("SELECT value FROM app_settings WHERE key = ?", (key,)).fetchone()
+    return row["value"] if row else default
+
+
+def get_model_config(include_secret: bool = False) -> dict[str, Any]:
+    with connect() as conn:
+        encrypted_key = _get_setting(conn, "model.api_key", "")
+        config = {
+            "provider": _get_setting(conn, "model.provider", "openai"),
+            "baseUrl": _get_setting(conn, "model.base_url", ""),
+            "modelName": _get_setting(conn, "model.name", ""),
+            "hasApiKey": bool(encrypted_key),
+        }
+        if include_secret and encrypted_key:
+            config["apiKey"] = unprotect_text(encrypted_key)
+        return config
+
+
+def save_model_config(provider: str, base_url: str, model_name: str, api_key: str = "", clear_api_key: bool = False) -> dict[str, Any]:
+    with connect() as conn:
+        _set_setting(conn, "model.provider", provider.strip() or "openai")
+        _set_setting(conn, "model.base_url", base_url.strip())
+        _set_setting(conn, "model.name", model_name.strip())
+        if clear_api_key:
+            _set_setting(conn, "model.api_key", "", True)
+        elif api_key:
+            _set_setting(conn, "model.api_key", protect_text(api_key), True)
+        audit(conn, "settings.model_saved", "app_settings", "model", "模型配置已保存到本地加密设置")
+    return get_model_config()
+
+
+def get_current_user() -> dict[str, Any]:
+    with connect() as conn:
+        return row_to_dict(conn.execute("SELECT * FROM local_user_profiles ORDER BY created_at ASC LIMIT 1").fetchone()) or {
+            "id": "local_user_placeholder",
+            "display_name": "BD Admin",
+            "email": "bd-local@example.com",
+            "role": "BD",
+        }
+
+
+def save_current_user(display_name: str, email: str = "", role: str = "BD") -> dict[str, Any]:
+    profile = get_current_user()
+    ts = now_iso()
+    with connect() as conn:
+        conn.execute(
+            "UPDATE local_user_profiles SET display_name = ?, email = ?, role = ?, updated_at = ? WHERE id = ?",
+            (display_name.strip() or "BD Admin", email.strip(), role.strip() or "BD", ts, profile["id"]),
+        )
+        audit(conn, "settings.user_saved", "local_user_profile", profile["id"], "开发期账号占位资料已保存")
+        return row_to_dict(conn.execute("SELECT * FROM local_user_profiles WHERE id = ?", (profile["id"],)).fetchone()) or {}
+
+
+def list_gmail_accounts() -> list[dict[str, Any]]:
+    with connect() as conn:
+        return rows_to_dicts(conn.execute("SELECT * FROM gmail_accounts ORDER BY updated_at DESC").fetchall())
+
+
+def save_gmail_account(email: str, browser_name: str = "", browser_profile: str = "", notes: str = "") -> dict[str, Any]:
+    if not email.strip():
+        raise ValueError("Gmail email is required.")
+    account_id = new_id("gmail")
+    ts = now_iso()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO gmail_accounts (id, email, browser_name, browser_profile, auth_status, notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'configured_placeholder', ?, ?, ?)
+            """,
+            (account_id, email.strip(), browser_name.strip(), browser_profile.strip(), notes.strip(), ts, ts),
+        )
+        audit(conn, "gmail_account.configured", "gmail_account", account_id, "Gmail 浏览器授权配置占位已保存")
+        return row_to_dict(conn.execute("SELECT * FROM gmail_accounts WHERE id = ?", (account_id,)).fetchone()) or {}
+
+
+def delete_gmail_account(account_id: str) -> dict[str, Any]:
+    with connect() as conn:
+        conn.execute("DELETE FROM gmail_accounts WHERE id = ?", (account_id,))
+        audit(conn, "gmail_account.deleted", "gmail_account", account_id, "删除 Gmail 授权配置占位")
+    return {"ok": True, "deleted": account_id}
+
+
+def app_settings() -> dict[str, Any]:
+    return {"model": get_model_config(), "gmailAccounts": list_gmail_accounts(), "user": get_current_user()}
+
+
 def render_template_text(text: str, kol: dict[str, Any], brief: str = "") -> str:
     values = {
         "kol_name": kol.get("handle") or "there",
@@ -163,6 +286,106 @@ def render_template_text(text: str, kol: dict[str, Any], brief: str = "") -> str
     for key, value in values.items():
         rendered = rendered.replace("{{" + key + "}}", str(value))
     return rendered
+
+
+def _json_from_model_text(text: str) -> dict[str, Any]:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`").strip()
+        if cleaned.lower().startswith("json"):
+            cleaned = cleaned[4:].strip()
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start >= 0 and end > start:
+        cleaned = cleaned[start : end + 1]
+    return json.loads(cleaned)
+
+
+def call_model(messages: list[dict[str, str]], temperature: float = 0.4) -> str:
+    config = get_model_config(include_secret=True)
+    provider = (config.get("provider") or "openai").lower()
+    base_url = (config.get("baseUrl") or "").rstrip("/")
+    model = config.get("modelName") or ""
+    api_key = config.get("apiKey") or ""
+    if provider != "local" and (not base_url or not model or not api_key):
+        raise ValueError("请先在设置中保存模型 Base URL、Model Name 和 API Key。")
+    if provider == "local" and (not base_url or not model):
+        raise ValueError("请先在设置中保存本地模型 Base URL 和 Model Name。")
+
+    if provider == "local" or "ollama" in base_url.lower():
+        endpoint = f"{base_url}/api/chat"
+        payload = {"model": model, "messages": messages, "stream": False, "options": {"temperature": temperature}}
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    else:
+        endpoint = f"{base_url}/chat/completions"
+        payload = {"model": model, "messages": messages, "temperature": temperature}
+        headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization": f"Bearer {api_key}"}
+
+    request = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        raise ValueError(f"Model request failed with HTTP {exc.code}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise ValueError(f"Model request failed: {exc.reason}") from exc
+
+    if "choices" in result:
+        return result["choices"][0]["message"]["content"]
+    if isinstance(result.get("message"), dict):
+        return result["message"].get("content", "")
+    if isinstance(result.get("response"), str):
+        return result["response"]
+    raise ValueError("Model response did not contain generated text.")
+
+
+def generate_email_copy_with_model(kol: dict[str, Any], brief: str = "", language: str = "en", template: dict[str, Any] | None = None, scenario: str = "first_touch", reply_text: str = "") -> tuple[str, str]:
+    rendered_template = ""
+    if template:
+        rendered_template = (
+            "Template subject:\n"
+            + render_template_text(template.get("subject", ""), kol, brief)
+            + "\n\nTemplate body:\n"
+            + render_template_text(template.get("body", ""), kol, brief)
+        )
+    prompt = {
+        "scenario": scenario,
+        "language": "Chinese" if language == "zh" else "English",
+        "kol": {
+            "name": kol.get("handle") or "there",
+            "email": kol.get("email") or "",
+            "platform": kol.get("platform") or "TikTok",
+            "country": kol.get("country") or "",
+            "niche": kol.get("commerce_niche") or kol.get("category") or "",
+            "homepage": kol.get("homepage_url") or "",
+            "followers": kol.get("followers") or 0,
+            "sales_28d": kol.get("sales_28d") or 0,
+        },
+        "campaign_brief": brief,
+        "template": rendered_template,
+        "reply_text": reply_text[:1200],
+    }
+    content = call_model(
+        [
+            {
+                "role": "system",
+                "content": "You write concise KOL outreach emails for BD teams. Return valid JSON only with keys subject and body. Do not promise price, commission, or samples unless explicitly provided. Keep the tone natural and require human review.",
+            },
+            {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
+        ],
+        temperature=0.5,
+    )
+    try:
+        data = _json_from_model_text(content)
+        subject = str(data.get("subject") or "").strip()
+        body = str(data.get("body") or "").strip()
+    except Exception:
+        subject = f"Collaboration idea for {kol.get('handle') or 'you'}"
+        body = content.strip()
+    if not subject or not body:
+        raise ValueError("Model returned an empty draft.")
+    return subject, body
 
 
 def email_copy(kol: dict[str, Any], brief: str = "", language: str = "en", template: dict[str, Any] | None = None) -> tuple[str, str]:
@@ -221,7 +444,7 @@ def generate_drafts(limit: int = 20, brief: str = "", from_account: str = "", ko
         drafts: list[dict[str, Any]] = []
         for row in rows:
             kol = row_to_dict(row) or {}
-            subject, body = email_copy(kol, brief, language, template)
+            subject, body = generate_email_copy_with_model(kol, brief, language, template, "first_touch")
             risk_labels = ["manual_review_required"]
             if any(word in body.lower() for word in ["price", "commission", "free sample", "guarantee"]):
                 risk_labels.append("commercial_terms")
@@ -306,6 +529,26 @@ def save_template(name: str, subject: str, body: str, language: str = "en", scen
 
 
 def generate_template_ai(language: str = "en", scenario: str = "first_touch", brief: str = "") -> dict[str, Any]:
+    content = call_model(
+        [
+            {
+                "role": "system",
+                "content": "Create a reusable KOL outreach email template. Return valid JSON only with keys name, subject, body. The template must include dynamic fields such as {{kol_name}}, {{platform}}, {{country}}, {{niche}}, and {{brief}}.",
+            },
+            {
+                "role": "user",
+                "content": json.dumps({"language": language, "scenario": scenario, "campaign_brief": brief}, ensure_ascii=False),
+            },
+        ],
+        temperature=0.55,
+    )
+    data = _json_from_model_text(content)
+    name = str(data.get("name") or ("AI generated template" if language != "zh" else "AI 生成模板")).strip()
+    subject = str(data.get("subject") or "").strip()
+    body = str(data.get("body") or "").strip()
+    if not subject or not body:
+        raise ValueError("Model returned an empty template.")
+    return {"name": name, "language": language, "scenario": scenario, "subject": subject, "body": body, "tags": ["ai_generated", scenario, language]}
     if language == "zh":
         subject = "{{kol_name}}，想和你聊一个合作机会"
         body = (
@@ -345,6 +588,38 @@ def approve_draft(draft_id: str, from_account: str = "") -> dict[str, Any]:
         return get_draft_by_id(conn, draft_id) or {}
 
 
+def archive_draft(draft_id: str) -> dict[str, Any]:
+    with connect() as conn:
+        draft = get_draft_by_id(conn, draft_id)
+        if not draft:
+            raise ValueError("Draft does not exist.")
+        ts = now_iso()
+        conn.execute("UPDATE outreach_drafts SET status = 'archived', archived_at = ?, updated_at = ? WHERE id = ?", (ts, ts, draft_id))
+        audit(conn, "draft.archived", "outreach_draft", draft_id, "草稿已归档")
+        return get_draft_by_id(conn, draft_id) or {}
+
+
+def restore_draft(draft_id: str) -> dict[str, Any]:
+    with connect() as conn:
+        draft = get_draft_by_id(conn, draft_id)
+        if not draft:
+            raise ValueError("Draft does not exist.")
+        ts = now_iso()
+        conn.execute("UPDATE outreach_drafts SET status = 'pending_review', archived_at = NULL, updated_at = ? WHERE id = ?", (ts, draft_id))
+        audit(conn, "draft.restored", "outreach_draft", draft_id, "草稿已恢复到待审核")
+        return get_draft_by_id(conn, draft_id) or {}
+
+
+def delete_draft(draft_id: str) -> dict[str, Any]:
+    with connect() as conn:
+        draft = get_draft_by_id(conn, draft_id)
+        if not draft:
+            raise ValueError("Draft does not exist.")
+        conn.execute("DELETE FROM outreach_drafts WHERE id = ?", (draft_id,))
+        audit(conn, "draft.deleted", "outreach_draft", draft_id, "草稿已从本地删除")
+    return {"ok": True, "deleted": draft_id}
+
+
 def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: str = "needs_review") -> dict[str, Any]:
     with connect() as conn:
         kol = row_to_dict(conn.execute("SELECT * FROM kol_leads WHERE id = ?", (kol_id,)).fetchone())
@@ -366,6 +641,7 @@ def save_reply(kol_id: str, reply_text: str, account_email: str = "", intent: st
             "Best,\nBD Team\n\n"
             f"Reviewer note: {reply_text[:400]}"
         )
+        subject, body = generate_email_copy_with_model(kol, "", "en", None, "follow_up", reply_text)
         draft_id = new_id("draft")
         conn.execute(
             """
@@ -410,7 +686,10 @@ def summary() -> dict[str, Any]:
 
 
 def list_supported_models(provider: str = "openai", base_url: str = "", api_key: str = "") -> dict[str, Any]:
-    base = (base_url or "").strip().rstrip("/")
+    saved = get_model_config(include_secret=True)
+    provider = provider or saved.get("provider", "openai")
+    base = (base_url or saved.get("baseUrl", "") or "").strip().rstrip("/")
+    api_key = api_key or saved.get("apiKey", "")
     if not base:
         raise ValueError("Base URL is required before fetching models.")
 

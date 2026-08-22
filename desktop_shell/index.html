@@ -91,9 +91,24 @@
         gap: 10px;
         text-align: left;
       }
+      .user-entry {
+        width: 100%;
+        border: 1px solid rgba(96,165,250,.28);
+        border-radius: 8px;
+        padding: 9px 10px;
+        color: #e8eef7;
+        background: rgba(59,130,246,.12);
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 9px;
+        text-align: left;
+        align-items: center;
+      }
+      .user-entry small { display: block; color: #9aa8bd; font-size: 11px; line-height: 1.35; }
       .app.sidebar-collapsed .brand b,
       .app.sidebar-collapsed .brand span,
       .app.sidebar-collapsed .side-note,
+      .app.sidebar-collapsed .user-entry small,
       .app.sidebar-collapsed .settings-entry .nav-label,
       .app.sidebar-collapsed .nav-label { display: none; }
       .app.sidebar-collapsed .brand-row,
@@ -217,6 +232,11 @@
       .template-item { border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: var(--soft); }
       .template-item b { font-size: 13px; }
       .template-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .settings-section { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfdff; display: grid; gap: 10px; }
+      .settings-section h3 { margin: 0; font-size: 14px; }
+      .settings-list { display: grid; gap: 8px; max-height: 150px; overflow: auto; }
+      .settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: #fff; }
+      .settings-row p { margin: 3px 0 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
       .focus-pulse {
         animation: focusPulse 1.2s ease;
         border-color: #8bb8ff !important;
@@ -279,6 +299,10 @@
           <button data-nav="supabase"><span class="glyph">S</span><span class="nav-label" data-i18n="navSupabase">Supabase</span></button>
         </nav>
         <div class="sidebar-footer">
+          <button class="user-entry" data-open="user-dialog">
+            <span class="glyph">U</span>
+            <span><span id="current-user-name">BD Admin</span><small id="current-user-role">Local placeholder account</small></span>
+          </button>
           <button class="settings-entry" data-open="settings-dialog"><span class="glyph">⚙</span><span class="nav-label" data-i18n="settings">设置</span></button>
           <div class="side-note" data-i18n="safetyNote">外发内容必须人工确认；Agent 会话、原始邮件、Prompt 和密钥不上传 Supabase。</div>
         </div>
@@ -325,6 +349,7 @@
                 </div>
                 <div class="panel-tools">
                   <button class="btn ghost" id="select-all" data-i18n="selectAll">全选</button>
+                  <button class="btn ghost" id="select-all-matching" type="button">全量全选</button>
                   <button class="btn collapse-panel">收缩</button>
                 </div>
               </div>
@@ -370,6 +395,7 @@
                     <button class="tab active" data-gmail-tab="drafts"><span data-i18n="drafts">草稿</span> <span id="tab-drafts">0</span></button>
                     <button class="tab" data-gmail-tab="sent"><span data-i18n="sent">已发送</span> <span id="tab-sent">0</span></button>
                     <button class="tab" data-gmail-tab="replied"><span data-i18n="replied">已回复</span> <span id="tab-replied">0</span></button>
+                    <button class="tab" data-gmail-tab="archived">已存档 <span id="tab-archived">0</span></button>
                   </div>
                   <div class="queue-toolbar">
                     <span id="gmail-page-info">0 items</span>
@@ -433,7 +459,7 @@
           <div class="step" id="step-review">3. 进入审核队列</div>
         </div>
         <div class="form-grid">
-          <label class="field">发送账号<input id="gen-account" placeholder="bd-de-01@gmail.com" value="bd-local@gmail.com" /></label>
+          <label class="field">发送账号<input id="gen-account" list="gmail-account-options" placeholder="bd-de-01@gmail.com" value="bd-local@gmail.com" /><datalist id="gmail-account-options"></datalist></label>
           <label class="field">生成语言
             <select id="gen-language"><option value="en">English</option><option value="zh">中文</option></select>
           </label>
@@ -528,7 +554,27 @@
           </label>
         </div>
         <label class="field"><span data-i18n="apiKey">API Key</span><input id="setting-api-key" type="password" placeholder="当前版本不保存密钥，仅用于后续凭据库接入占位" /></label>
-        <div class="notice" data-i18n="settingsNotice">当前保存 Provider、Base URL、Model Name 和面板语言。API Key 不会写入桌面 Shell 本地存储，后续应接入 Windows Credential Manager 或系统凭据库。</div>
+        <label class="field"><span>密钥操作</span>
+          <select id="setting-api-key-action">
+            <option value="keep">保留已保存密钥</option>
+            <option value="replace">用上方 API Key 更新</option>
+            <option value="clear">清除本地密钥</option>
+          </select>
+        </label>
+        <div class="settings-section">
+          <h3>Gmail 授权配置</h3>
+          <div class="form-grid">
+            <label class="field">Gmail 邮箱<input id="gmail-email" placeholder="bd-de-01@gmail.com" /></label>
+            <label class="field">浏览器名称<input id="gmail-browser-name" placeholder="Chrome 德区 / Edge 一号" /></label>
+          </div>
+          <label class="field">浏览器 Profile / User Data 路径<input id="gmail-browser-profile" placeholder="C:\\Users\\...\\Chrome\\User Data\\Profile 1" /></label>
+          <label class="field">备注<input id="gmail-notes" placeholder="用途、地区、限流策略等" /></label>
+          <div class="row-actions">
+            <button class="btn" id="add-gmail-account" type="button">添加 Gmail 配置</button>
+          </div>
+          <div class="settings-list" id="gmail-account-list"></div>
+        </div>
+        <div class="notice" data-i18n="settingsNotice">当前模型 Provider、Base URL、Model Name 和 API Key 保存到本地 SQLite，其中 API Key 使用 Windows DPAPI 加密。后续再扩展为加密后同步到数据库。</div>
         <div class="toast" id="model-fetch-toast"></div>
         <div class="toast" id="settings-toast"></div>
       </div>
@@ -538,11 +584,31 @@
       </div>
     </dialog>
 
+    <dialog id="user-dialog">
+      <div class="dialog-head">
+        <div><h2>账号</h2><p>开发期占位登录模块；暂不保存密码，后续接入注册登录和账号数据保存。</p></div>
+        <button class="btn" data-close>关闭</button>
+      </div>
+      <div class="dialog-body">
+        <div class="form-grid">
+          <label class="field">账号名称<input id="user-display-name" placeholder="BD Admin" /></label>
+          <label class="field">邮箱<input id="user-email" placeholder="bd-local@example.com" /></label>
+        </div>
+        <label class="field">角色<input id="user-role" placeholder="BD" /></label>
+        <div class="notice">当前是本地开发占位登录，不校验密码；账号资料仅保存在本地。</div>
+        <div class="toast" id="user-toast"></div>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn" data-close>取消</button>
+        <button class="btn primary" id="save-user">保存账号</button>
+      </div>
+    </dialog>
+
     <script>
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => Array.from(document.querySelectorAll(selector));
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
-      const state = { kols: [], drafts: [], replies: [], templates: [], selected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
+      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10 };
       const settingsKey = "kolWorkbenchSettings";
       const defaultSettings = { panelLanguage: "zh", modelProvider: "openai", modelBaseUrl: "", modelName: "" };
       const i18n = {
@@ -653,14 +719,30 @@
         document.documentElement.lang = language === "en" ? "en" : "zh-CN";
       }
 
-      function hydrateSettingsDialog() {
+      async function hydrateSettingsDialog() {
         const settings = loadSettings();
         $("#setting-language").value = settings.panelLanguage;
-        $("#setting-model-provider").value = settings.modelProvider;
-        $("#setting-model-base-url").value = settings.modelBaseUrl;
-        $("#setting-model-name").value = settings.modelName;
         $("#setting-api-key").value = "";
+        $("#setting-api-key-action").value = "keep";
         applyPanelLanguage(settings.panelLanguage);
+        try {
+          const result = await api("/api/settings");
+          applySettingsState(result.settings);
+        } catch {
+          $("#settings-toast").textContent = "本地 Agent 未连接，暂时只能读取面板语言。";
+        }
+      }
+
+      function applySettingsState(settings) {
+        const model = settings.model || {};
+        state.gmailAccounts = settings.gmailAccounts || [];
+        state.user = settings.user || null;
+        $("#setting-model-provider").value = model.provider || "openai";
+        $("#setting-model-base-url").value = model.baseUrl || "";
+        $("#setting-model-name").value = model.modelName || "";
+        $("#setting-api-key").placeholder = model.hasApiKey ? "已保存本地加密密钥；留空并选择保留即可" : "输入后选择更新，保存到本地加密存储";
+        renderGmailAccounts();
+        renderUser();
       }
 
       async function api(path, options = {}) {
@@ -690,13 +772,14 @@
         const priority = encodeURIComponent($("#priority").value);
         const status = encodeURIComponent($("#status-filter").value);
         const tagFilter = encodeURIComponent($("#tag-filter").value);
-        const [summary, kols, drafts, replies, supabase, templates] = await Promise.all([
+        const [summary, kols, drafts, replies, supabase, templates, settings] = await Promise.all([
           api("/api/summary"),
           api(`/api/kols?query=${query}&priority=${priority}&status=${status}&tag=${tagFilter}`),
           api("/api/drafts"),
           api("/api/replies"),
           api("/api/supabase/status"),
-          api("/api/templates")
+          api("/api/templates"),
+          api("/api/settings")
         ]);
         $("#m-kols").textContent = summary.summary.kols;
         $("#m-emails").textContent = summary.summary.emails;
@@ -706,10 +789,12 @@
         state.drafts = drafts.drafts;
         state.replies = replies.replies;
         state.templates = templates.templates;
-        state.selected = new Set([...state.selected].filter((id) => state.kols.some((kol) => kol.id === id)));
+        applySettingsState(settings.settings);
+        state.selected = new Set(state.selected);
         $("#tab-drafts").textContent = state.drafts.filter((d) => d.status === "pending_review").length;
         $("#tab-sent").textContent = state.drafts.filter((d) => d.status === "sent_recorded").length;
         $("#tab-replied").textContent = state.replies.length;
+        $("#tab-archived").textContent = state.drafts.filter((d) => d.status === "archived").length;
         $("#supabase-status").textContent = supabase.supabase.configured
           ? `已配置 Supabase：${supabase.supabase.url}`
           : "未配置 Supabase。当前业务数据先保存在本地缓存，可离线使用。";
@@ -796,9 +881,16 @@
         $("#gmail-list").innerHTML = html;
       }
 
+      function draftActions(d) {
+        if (d.status === "archived") return `<button class="btn" data-preview="${esc(d.id)}">预览</button><button class="btn" data-restore="${esc(d.id)}">恢复</button><button class="btn" data-delete-draft="${esc(d.id)}">删除</button>`;
+        if (d.status === "sent_recorded") return `<button class="btn" data-preview="${esc(d.id)}">预览</button><button class="btn" data-archive="${esc(d.id)}">存档</button><button class="btn" data-delete-draft="${esc(d.id)}">删除</button>`;
+        return `<button class="btn" data-preview="${esc(d.id)}">预览</button><button class="btn primary" data-approve="${esc(d.id)}">人工确认发送</button><button class="btn" data-archive="${esc(d.id)}">存档</button><button class="btn" data-delete-draft="${esc(d.id)}">删除</button>`;
+      }
+
       function activeGmailItems() {
         if (state.gmailTab === "drafts") return state.drafts.filter((d) => d.status === "pending_review");
         if (state.gmailTab === "sent") return state.drafts.filter((d) => d.status === "sent_recorded");
+        if (state.gmailTab === "archived") return state.drafts.filter((d) => d.status === "archived");
         return state.replies;
       }
 
@@ -821,6 +913,8 @@
           html = pageItems.map(renderDraftCard).join("") || `<div class="empty">No drafts yet. Select KOLs and generate Gmail drafts.</div>`;
         } else if (state.gmailTab === "sent") {
           html = pageItems.map(renderDraftCard).join("") || `<div class="empty">No sent records yet. This version records manual approval only and does not send real Gmail.</div>`;
+        } else if (state.gmailTab === "archived") {
+          html = pageItems.map(renderDraftCard).join("") || `<div class="empty">暂无存档草稿。</div>`;
         } else {
           html = pageItems.map((r) => `
             <article class="draft-card open">
@@ -852,6 +946,28 @@
         $("#reply-kol").innerHTML = state.kols.filter((k) => k.email).map((k) => `<option value="${esc(k.id)}">${esc(k.handle || k.email)} · ${esc(k.email)}</option>`).join("");
       }
 
+      function renderGmailAccounts() {
+        $("#gmail-account-options").innerHTML = state.gmailAccounts.map((account) => `<option value="${esc(account.email)}"></option>`).join("");
+        $("#gmail-account-list").innerHTML = state.gmailAccounts.map((account) => `
+          <div class="settings-row">
+            <div>
+              <b>${esc(account.email)}</b>
+              <p>${esc(account.browser_name || "Browser")} · ${esc(account.browser_profile || "No profile path")} · ${esc(account.auth_status)}</p>
+            </div>
+            <button class="btn" type="button" data-delete-gmail-account="${esc(account.id)}">删除</button>
+          </div>
+        `).join("") || `<div class="empty">暂无 Gmail 配置。这里先保存多浏览器授权占位，不会读取密码或登录态。</div>`;
+      }
+
+      function renderUser() {
+        const user = state.user || { display_name: "BD Admin", email: "bd-local@example.com", role: "BD" };
+        $("#current-user-name").textContent = user.display_name || "BD Admin";
+        $("#current-user-role").textContent = `${user.role || "BD"} · ${user.email || "local placeholder"}`;
+        $("#user-display-name").value = user.display_name || "";
+        $("#user-email").value = user.email || "";
+        $("#user-role").value = user.role || "BD";
+      }
+
       function openGenerateDialog() {
         $("#generate-subtitle").textContent = `将为 ${state.selected.size || "自动选择高分"} 个 KOL 生成 Gmail 草稿。`;
         $("#gen-language").value = $("#agent-language").value;
@@ -880,6 +996,17 @@
         await refresh();
       }
 
+      async function selectAllMatchingLeads() {
+        const query = encodeURIComponent($("#search").value);
+        const priority = encodeURIComponent($("#priority").value);
+        const status = encodeURIComponent($("#status-filter").value);
+        const tagFilter = encodeURIComponent($("#tag-filter").value);
+        const result = await api(`/api/kols/ids?query=${query}&priority=${priority}&status=${status}&tag=${tagFilter}&onlyReachable=1`);
+        state.selected = new Set(result.ids || []);
+        renderLeads();
+        $("#selected-count").textContent = `已选择 ${state.selected.size} 个可触达 KOL`;
+      }
+
       async function runGenerate() {
         $("#run-generate").disabled = true;
         $("#generate-status").textContent = "Agent 正在读取选中 KOL 和模板...";
@@ -906,6 +1033,22 @@
       async function approveDraft(id) {
         const fromAccount = prompt("确认发送使用的 Gmail 账号。当前版本仅记录发送动作，不真实外发。", "bd-local@gmail.com") || "";
         await api("/api/drafts/approve", { method: "POST", body: JSON.stringify({ draftId: id, fromAccount }) });
+        await refresh();
+      }
+
+      async function archiveDraft(id) {
+        await api("/api/drafts/archive", { method: "POST", body: JSON.stringify({ draftId: id }) });
+        await refresh();
+      }
+
+      async function restoreDraft(id) {
+        await api("/api/drafts/restore", { method: "POST", body: JSON.stringify({ draftId: id }) });
+        await refresh();
+      }
+
+      async function deleteDraft(id) {
+        if (!confirm("Delete this local draft? This will not delete any real Gmail message.")) return;
+        await api("/api/drafts/delete", { method: "POST", body: JSON.stringify({ draftId: id }) });
         await refresh();
       }
 
@@ -968,6 +1111,69 @@
         $("#settings-toast").textContent = settings.panelLanguage === "en"
           ? "Settings saved. API Key was not stored."
           : "设置已保存。API Key 未被保存。";
+      }
+
+      function saveSettingsFromDialog() {
+        const settings = {
+          panelLanguage: $("#setting-language").value,
+          modelProvider: $("#setting-model-provider").value,
+          modelBaseUrl: $("#setting-model-base-url").value.trim(),
+          modelName: $("#setting-model-name").value.trim()
+        };
+        saveSettingsValue(settings);
+        api("/api/settings/model", {
+          method: "POST",
+          body: JSON.stringify({
+            provider: settings.modelProvider,
+            baseUrl: settings.modelBaseUrl,
+            modelName: settings.modelName,
+            apiKey: ($("#setting-api-key-action").value === "replace" || $("#setting-api-key").value) ? $("#setting-api-key").value : "",
+            clearApiKey: $("#setting-api-key-action").value === "clear"
+          })
+        }).then((result) => {
+          applyPanelLanguage(settings.panelLanguage);
+          $("#agent-language").value = settings.panelLanguage === "en" ? "en" : "zh";
+          $("#gen-language").value = $("#agent-language").value;
+          $("#setting-api-key").value = "";
+          $("#setting-api-key-action").value = "keep";
+          applySettingsState({ model: result.model, gmailAccounts: state.gmailAccounts, user: state.user });
+          $("#settings-toast").textContent = "设置已保存。API Key 已按本地加密策略处理。";
+        }).catch((err) => {
+          $("#settings-toast").textContent = `保存失败：${err.message}`;
+        });
+      }
+
+      async function addGmailAccount() {
+        const result = await api("/api/gmail-accounts", {
+          method: "POST",
+          body: JSON.stringify({
+            email: $("#gmail-email").value,
+            browserName: $("#gmail-browser-name").value,
+            browserProfile: $("#gmail-browser-profile").value,
+            notes: $("#gmail-notes").value
+          })
+        });
+        state.gmailAccounts.unshift(result.account);
+        $("#gmail-email").value = "";
+        $("#gmail-browser-name").value = "";
+        $("#gmail-browser-profile").value = "";
+        $("#gmail-notes").value = "";
+        renderGmailAccounts();
+        $("#settings-toast").textContent = "Gmail 浏览器授权配置已保存为占位状态。";
+      }
+
+      async function saveUser() {
+        const result = await api("/api/settings/user", {
+          method: "POST",
+          body: JSON.stringify({
+            displayName: $("#user-display-name").value,
+            email: $("#user-email").value,
+            role: $("#user-role").value
+          })
+        });
+        state.user = result.user;
+        renderUser();
+        $("#user-toast").textContent = "账号占位资料已保存。";
       }
 
       function activateGmailTab() {
@@ -1054,6 +1260,15 @@
         $("#setting-language").addEventListener("change", () => applyPanelLanguage($("#setting-language").value));
         $("#save-settings").addEventListener("click", saveSettingsFromDialog);
         $("#fetch-models").addEventListener("click", fetchModelList);
+        $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = `Gmail 配置失败：${err.message}`; }));
+        $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
+        $("#gmail-account-list").addEventListener("click", async (event) => {
+          const accountId = event.target.dataset.deleteGmailAccount;
+          if (!accountId) return;
+          await api("/api/gmail-accounts/delete", { method: "POST", body: JSON.stringify({ accountId }) });
+          state.gmailAccounts = state.gmailAccounts.filter((account) => account.id !== accountId);
+          renderGmailAccounts();
+        });
         $$(".nav button").forEach((button) => button.addEventListener("click", () => handleNav(button.dataset.nav)));
         $$(".collapse-panel").forEach((button) => button.addEventListener("click", () => {
           const panel = button.closest(".panel");
@@ -1069,6 +1284,7 @@
           state.selected = allSelected ? new Set() : new Set(state.kols.map((k) => k.id));
           renderLeads();
         });
+        $("#select-all-matching").addEventListener("click", () => selectAllMatchingLeads().catch((err) => { $("#selected-count").textContent = `全量全选失败：${err.message}`; }));
         $("#lead-list").addEventListener("change", (event) => {
           const id = event.target.dataset.kolCheck;
           if (!id) return;
@@ -1093,8 +1309,14 @@
         $("#gmail-list").addEventListener("click", (event) => {
           const preview = event.target.dataset.preview;
           const approve = event.target.dataset.approve;
+          const archive = event.target.dataset.archive;
+          const restore = event.target.dataset.restore;
+          const deleteDraftId = event.target.dataset.deleteDraft;
           if (preview) document.querySelector(`[data-draft-card="${CSS.escape(preview)}"]`)?.classList.toggle("open");
           if (approve) approveDraft(approve);
+          if (archive) archiveDraft(archive);
+          if (restore) restoreDraft(restore);
+          if (deleteDraftId) deleteDraft(deleteDraftId);
         });
         $("#open-generate").addEventListener("click", openGenerateDialog);
         $("#generate-selected").addEventListener("click", openGenerateDialog);

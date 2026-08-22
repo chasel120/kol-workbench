@@ -406,3 +406,10 @@ Agent 入口应嵌入业务对象：
 4. 工作台拥有系统记录，Agent 只通过工具修改记录。
 5. 不做通用聊天盒子，做嵌入业务流程的 Agent。
 6. Supabase 保存业务事实，本地保存会话过程。
+# 2026-08-22 本轮架构补充
+
+- ModelRouter 已进入 MVP：文案生成、AI 模板生成和 follow-up 生成必须通过本地 Harness 调用配置模型。
+- SecretStore 已进入 MVP：模型 API Key 通过 Windows DPAPI 加密后保存在本地 SQLite，不进入桌面 Shell localStorage。
+- GmailOpsAgent 当前仍是安全占位：保存 Gmail 邮箱与浏览器/Profile 配置，不读取密码、cookie、2FA 或登录态。
+- ApprovalGate 仍保持：草稿生成后进入 pending_review，人工确认仅记录本地 sent_recorded，真实 Gmail 外发仍未实现。
+- DraftLifecycle 新增 archived/delete/restore，用于控制草稿队列积压。

@@ -574,3 +574,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - 本地保存“会话过程”。
 - 凭据进入“系统安全凭据库”。
 - 外发动作走“人审和审计”。
+# 2026-08-22 本轮数据边界补充
+
+- 模型 API Key 当前使用 Windows DPAPI 加密后保存在本地 SQLite `app_settings`，不上传 Supabase。
+- Gmail 多浏览器授权配置当前保存在本地 SQLite `gmail_accounts`，仅包含邮箱、浏览器名称、Profile 路径、备注和占位授权状态。
+- 开发期账号占位资料保存在本地 SQLite `local_user_profiles`；密码和正式登录凭据尚未实现。
+- 草稿正文仍本地保存；草稿状态可变为 `pending_review`、`sent_recorded`、`archived`，删除为本地硬删除。
+- 后续如果将加密凭据放入数据库，需要重新设计密钥管理、轮换和访问审计；不得直接把明文 token/API Key 上传 Supabase。

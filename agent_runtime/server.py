@@ -73,6 +73,20 @@ class Handler(BaseHTTPRequestHandler):
                 }
             )
             return
+        if path == "/api/kols/ids":
+            self.send_json(
+                {
+                    "ok": True,
+                    "ids": harness.list_kol_ids(
+                        query=query.get("query", [""])[0],
+                        priority=query.get("priority", [""])[0],
+                        status=query.get("status", [""])[0],
+                        tag=query.get("tag", [""])[0],
+                        only_reachable=query.get("onlyReachable", ["1"])[0] != "0",
+                    ),
+                }
+            )
+            return
         if path == "/api/drafts":
             self.send_json({"ok": True, "drafts": harness.list_drafts(status=query.get("status", [""])[0])})
             return
@@ -84,6 +98,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/supabase/status":
             self.send_json({"ok": True, "supabase": harness.supabase_status()})
+            return
+        if path == "/api/settings":
+            self.send_json({"ok": True, "settings": harness.app_settings()})
+            return
+        if path == "/api/gmail-accounts":
+            self.send_json({"ok": True, "accounts": harness.list_gmail_accounts()})
             return
         self.send_json({"error": "not found"}, 404)
 
@@ -110,6 +130,17 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/drafts/approve":
                 draft = harness.approve_draft(body.get("draftId", ""), body.get("fromAccount", ""))
                 self.send_json({"ok": True, "draft": draft})
+                return
+            if path == "/api/drafts/archive":
+                draft = harness.archive_draft(body.get("draftId", ""))
+                self.send_json({"ok": True, "draft": draft})
+                return
+            if path == "/api/drafts/restore":
+                draft = harness.restore_draft(body.get("draftId", ""))
+                self.send_json({"ok": True, "draft": draft})
+                return
+            if path == "/api/drafts/delete":
+                self.send_json(harness.delete_draft(body.get("draftId", "")))
                 return
             if path == "/api/replies":
                 result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"))
@@ -139,6 +170,39 @@ class Handler(BaseHTTPRequestHandler):
                         body.get("apiKey", ""),
                     )
                 )
+                return
+            if path == "/api/settings/model":
+                self.send_json(
+                    {
+                        "ok": True,
+                        "model": harness.save_model_config(
+                            body.get("provider", "openai"),
+                            body.get("baseUrl", ""),
+                            body.get("modelName", ""),
+                            body.get("apiKey", ""),
+                            bool(body.get("clearApiKey", False)),
+                        ),
+                    }
+                )
+                return
+            if path == "/api/settings/user":
+                self.send_json({"ok": True, "user": harness.save_current_user(body.get("displayName", ""), body.get("email", ""), body.get("role", "BD"))})
+                return
+            if path == "/api/gmail-accounts":
+                self.send_json(
+                    {
+                        "ok": True,
+                        "account": harness.save_gmail_account(
+                            body.get("email", ""),
+                            body.get("browserName", ""),
+                            body.get("browserProfile", ""),
+                            body.get("notes", ""),
+                        ),
+                    }
+                )
+                return
+            if path == "/api/gmail-accounts/delete":
+                self.send_json(harness.delete_gmail_account(body.get("accountId", "")))
                 return
             if path == "/api/supabase/sync":
                 self.send_json(harness.sync_supabase())

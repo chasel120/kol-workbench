@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS outreach_drafts (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   sent_at TEXT,
+  archived_at TEXT,
   FOREIGN KEY(kol_id) REFERENCES kol_leads(id) ON DELETE CASCADE
 );
 
@@ -196,6 +197,33 @@ CREATE TABLE IF NOT EXISTS sync_queue (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT '',
+  sensitive INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gmail_accounts (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  browser_name TEXT NOT NULL DEFAULT '',
+  browser_profile TEXT NOT NULL DEFAULT '',
+  auth_status TEXT NOT NULL DEFAULT 'not_authorized',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS local_user_profiles (
+  id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  email TEXT NOT NULL DEFAULT '',
+  role TEXT NOT NULL DEFAULT 'BD',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 """
 
 
@@ -203,6 +231,15 @@ def init_db() -> None:
     with connect() as conn:
         conn.executescript(SCHEMA)
         ensure_column(conn, "kol_leads", "tags", "TEXT NOT NULL DEFAULT '[]'")
+        ensure_column(conn, "outreach_drafts", "archived_at", "TEXT")
+        conn.execute(
+            """
+            INSERT INTO local_user_profiles (id, display_name, email, role, created_at, updated_at)
+            SELECT ?, ?, ?, ?, ?, ?
+            WHERE NOT EXISTS (SELECT 1 FROM local_user_profiles)
+            """,
+            ("local_user_placeholder", "BD Admin", "bd-local@example.com", "BD", now_iso(), now_iso()),
+        )
         conn.execute(
             """
             INSERT INTO reply_templates (id, name, language, scenario, subject, body, tags, created_at, updated_at)

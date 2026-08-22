@@ -88,3 +88,14 @@ python -m agent_runtime.server
 ## 安全说明
 
 当前版本不会真实发送 Gmail。点击“人工确认发送”只会记录本地发送动作，`external_sent=false`。真实 Gmail 发送应在后续版本中通过 Google OAuth + Gmail API 实现，并保留人工确认。
+
+## 2026-08-22 更新说明
+
+- 草稿、回复模板和二次跟进文案生成现在要求先在设置中配置大模型；未配置模型时会提示失败，不再用静态文案冒充 AI。
+- 模型 Provider、Base URL、Model Name 保存到本地 SQLite；API Key 使用 Windows DPAPI 加密后保存在本地。
+- 设置中可添加多个 Gmail 浏览器授权配置占位，字段包含 Gmail 邮箱、浏览器名称、Profile 路径和备注；当前不读取密码、cookie 或真实登录态。
+- 左下角新增开发期账号入口，账号名、邮箱和角色仅作为本地占位资料保存，暂不校验密码。
+- KOL 线索池增加全量全选，可按当前筛选条件选择全部可触达 KOL。
+- Gmail 草稿增加存档、恢复和删除，避免待审草稿越积越多。
+
+如果服务已经在运行，修改后请重启 `start_kol_workbench.bat`，让新的本地 Agent 接口生效。

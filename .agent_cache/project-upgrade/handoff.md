@@ -108,3 +108,12 @@ Gmail 相关开发必须谨慎：
 - 设置弹窗增加“拉取模型”按钮：前端调用 `POST /api/models/list`，返回模型写入 `#model-options`，并在模型名为空时自动填入第一个模型。
 - `/api/models/list` 支持 OpenAI-compatible `/models` 响应，也兼容部分 Ollama 风格响应。API Key 只走内存请求，不落盘。
 - 注意：如果本地服务已在 8766 运行，需要重启 `start_kol_workbench.bat` 才能加载新的 Python 接口；HTML 改动可通过刷新页面看到。
+# 2026-08-22 本轮交接
+
+- 新增文件：`agent_runtime/secure_store.py`，使用 Windows DPAPI 加密/解密模型 API Key。
+- `agent_runtime/storage.py` 新增 `app_settings`、`gmail_accounts`、`local_user_profiles` 表，并给 `outreach_drafts` 增加 `archived_at`。
+- `agent_runtime/harness.py` 新增设置、用户占位、Gmail 配置、全量 KOL ID、草稿归档/恢复/删除、模型调用函数。
+- `agent_runtime/server.py` 新增 `/api/settings`、`/api/settings/model`、`/api/settings/user`、`/api/gmail-accounts`、`/api/kols/ids`、`/api/drafts/archive|restore|delete`。
+- `desktop_shell/index.html` 新增全量全选、账号入口、设置内 Gmail 配置、已存档 Tab、草稿删除/存档按钮。
+- 当前真实 Gmail OAuth 仍未实现，只保存多浏览器授权占位配置；真实授权和发送仍需后续明确安全方案。
+- 本轮后必须重启本地 Agent 服务，旧 8766 进程不会自动加载新增 Python 接口。

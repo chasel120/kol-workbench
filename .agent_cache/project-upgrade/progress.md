@@ -122,3 +122,18 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - 前端脚本解析检查通过。
 - 浏览器验证：当前真实数据有 58 条待审草稿，页面显示 `1-10 / 58`，点击下一页后显示 `11-20 / 58`。
 - 模型列表解析使用本地 mock 验证通过。
+# 2026-08-22 本轮功能补充
+
+## 已完成
+- KOL 线索池新增“全量全选”，通过本地 Agent 获取当前筛选条件下全部可触达 KOL ID。
+- 设置弹窗新增 Gmail 多浏览器授权配置占位，可保存 Gmail 邮箱、浏览器名称、Profile 路径和备注。
+- 左下角新增开发期账号入口，可保存账号名、邮箱和角色占位资料；当前不保存密码。
+- 模型配置改为本地 Agent 保存，API Key 使用 Windows DPAPI 加密后写入本地 SQLite。
+- 草稿生成、AI 模板生成、回复 follow-up 生成均改为调用配置的大模型；未配置模型时明确失败。
+- Gmail 草稿增加存档、恢复和删除动作，并新增“已存档”Tab。
+
+## 验证
+- `python -m py_compile agent_runtime\storage.py agent_runtime\secure_store.py agent_runtime\harness.py agent_runtime\server.py`
+- 前端脚本解析检查通过。
+- 临时 SQLite 功能烟测通过：加密模型配置、Gmail 配置、账号占位、模型生成路径、KOL 全量 ID、草稿归档/恢复/删除。
+- 临时 8767 服务验证 `/api/settings` 和 `/api/kols/ids` 正常。
