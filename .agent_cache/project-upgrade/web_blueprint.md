@@ -365,3 +365,8 @@ MVP 暂不完成：
 
 - Path picker actions must show click progress and errors near the path fields, not only at the bottom of a scrollable settings dialog.
 - If the local Agent picker route is stale or unavailable, the settings dialog should visibly report the failure in the Gmail authorization section.
+
+# 2026-08-26 Gmail Path Picker Start Directory Update
+
+- Browser path pickers should open near the most likely location: current input value first, then known Chrome/Edge directories.
+- A raw backend `not found` message should never be shown directly to the user; explain that the local Agent process needs a restart.

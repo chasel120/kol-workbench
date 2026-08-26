@@ -151,3 +151,8 @@
 
 - Opening Tk file dialogs directly inside `ThreadingHTTPServer` request threads can look like a no-op on Windows because the dialog may fail to surface or block the request thread.
 - Path-picker feedback must be close to the clicked buttons; writing errors only to the bottom of a scrollable settings dialog makes failures look invisible.
+
+# 2026-08-26 Gmail Picker Default Directory Findings
+
+- A raw `not found` response in the picker section indicates the browser is still talking to an older local Agent process without `/api/system/select-path`.
+- File/folder pickers should use user-entered path context first, then fall back to common Chrome/Edge directories, so users are not dropped into a root directory.

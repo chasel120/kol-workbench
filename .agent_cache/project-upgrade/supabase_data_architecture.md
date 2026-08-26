@@ -613,3 +613,8 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Browser Profile/User Data folder paths are local machine configuration data and must remain local-only.
 - Supabase must not receive browser executable paths, Profile/User Data folder paths, cookies, OAuth tokens, passwords, or browser login-state references.
 - Future cloud summaries may reference an account alias/status, but not the local filesystem paths used to launch or identify that account.
+
+# 2026-08-26 Gmail Picker Context Data Boundary
+
+- Picker `initialPath` and `browserHint` are transient local UI context values.
+- They must not be uploaded to Supabase, logged as cloud audit data, or treated as Gmail authorization evidence.

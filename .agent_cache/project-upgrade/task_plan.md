@@ -155,3 +155,9 @@
 - Completed: separate browser executable selection from Profile/User Data folder selection.
 - Completed: add local folder picker support through the same desktop Agent helper route.
 - Next: browser launch/OAuth design should consume these fields only after a reviewed Gmail safety plan is approved.
+
+# 2026-08-26 Gmail Picker Start Directory Plan Update
+
+- Completed: pass current path/browser context into the local picker helper.
+- Completed: use common Chrome/Edge directories as picker defaults.
+- Completed: replace raw stale-backend `not found` picker errors with restart guidance.

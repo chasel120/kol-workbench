@@ -198,3 +198,10 @@ Gmail 相关开发必须谨慎：
 - `agent_runtime.server.select_local_path()` now launches the Tk picker in a short-lived Python subprocess and returns stdout as the selected path.
 - This avoids opening Tk dialogs directly from HTTP worker threads, which was the likely cause of the browse buttons appearing to do nothing.
 - `desktop_shell/index.html` now renders `#gmail-path-toast` directly below the two path fields and writes picker progress/failure there as well as to the settings footer toast.
+
+# 2026-08-26 Gmail Picker Default Directory Handoff
+
+- `/api/system/select-path` now accepts optional `initialPath` and `browserHint` fields.
+- The frontend sends the current path input value and browser name when opening either picker.
+- The backend resolves the picker start directory from the current path first, then falls back to common Chrome/Edge application or User Data folders.
+- Raw `not found` picker failures are translated into a restart instruction because they indicate a stale local Agent process.

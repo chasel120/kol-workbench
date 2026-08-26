@@ -17,14 +17,63 @@ ROOT = Path(__file__).resolve().parents[1]
 DESKTOP_SHELL = ROOT / "desktop_shell" / "index.html"
 
 
-def select_local_path(kind: str = "file") -> str:
+def default_picker_dir(kind: str, browser_hint: str = "") -> str:
+    hint = browser_hint.lower()
+    local_app_data = os.environ.get("LOCALAPPDATA", "")
+    program_files = os.environ.get("ProgramFiles", "")
+    program_files_x86 = os.environ.get("ProgramFiles(x86)", "")
+
+    if kind == "directory":
+        candidates = []
+        if "edge" in hint or "msedge" in hint:
+            candidates.append(Path(local_app_data) / "Microsoft" / "Edge" / "User Data")
+        candidates.extend(
+            [
+                Path(local_app_data) / "Google" / "Chrome" / "User Data",
+                Path(local_app_data) / "Microsoft" / "Edge" / "User Data",
+                Path.home(),
+            ]
+        )
+    else:
+        candidates = []
+        if "edge" in hint or "msedge" in hint:
+            candidates.append(Path(program_files_x86) / "Microsoft" / "Edge" / "Application")
+        candidates.extend(
+            [
+                Path(program_files) / "Google" / "Chrome" / "Application",
+                Path(program_files_x86) / "Google" / "Chrome" / "Application",
+                Path(local_app_data) / "Google" / "Chrome" / "Application",
+                Path(program_files_x86) / "Microsoft" / "Edge" / "Application",
+                Path.home(),
+            ]
+        )
+
+    for candidate in candidates:
+        if str(candidate) and candidate.exists():
+            return str(candidate)
+    return str(Path.home())
+
+
+def resolve_initial_dir(kind: str, initial_path: str = "", browser_hint: str = "") -> str:
+    if initial_path:
+        candidate = Path(initial_path).expanduser()
+        if candidate.is_file():
+            candidate = candidate.parent
+        if candidate.exists():
+            return str(candidate)
+    return default_picker_dir(kind, browser_hint)
+
+
+def select_local_path(kind: str = "file", initial_path: str = "", browser_hint: str = "") -> str:
     picker_kind = "directory" if kind == "directory" else "file"
+    initial_dir = resolve_initial_dir(picker_kind, initial_path, browser_hint)
     picker_script = r'''
 import sys
 import tkinter as tk
 from tkinter import filedialog
 
 kind = sys.argv[1] if len(sys.argv) > 1 else "file"
+initial_dir = sys.argv[2] if len(sys.argv) > 2 else ""
 root = tk.Tk()
 root.withdraw()
 root.attributes("-topmost", True)
@@ -38,11 +87,13 @@ try:
         path = filedialog.askdirectory(
             parent=root,
             title="Select browser profile or user data directory",
+            initialdir=initial_dir,
         )
     else:
         path = filedialog.askopenfilename(
             parent=root,
             title="Select browser executable",
+            initialdir=initial_dir,
             filetypes=[
                 ("Browser executable", "*.exe"),
                 ("All files", "*.*"),
@@ -54,7 +105,7 @@ finally:
 '''
     try:
         result = subprocess.run(
-            [sys.executable, "-c", picker_script, picker_kind],
+            [sys.executable, "-c", picker_script, picker_kind, initial_dir],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -290,7 +341,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(harness.delete_gmail_account(body.get("accountId", "")))
                 return
             if path == "/api/system/select-path":
-                self.send_json({"ok": True, "path": select_local_path(body.get("kind", "file"))})
+                self.send_json(
+                    {
+                        "ok": True,
+                        "path": select_local_path(
+                            body.get("kind", "file"),
+                            body.get("initialPath", ""),
+                            body.get("browserHint", ""),
+                        ),
+                    }
+                )
                 return
             if path == "/api/supabase/sync":
                 self.send_json(harness.sync_supabase())

@@ -450,3 +450,9 @@ Agent 入口应嵌入业务对象：
 
 - `/api/system/select-path` now opens the native Tk picker in an isolated Python subprocess rather than directly inside the threaded HTTP handler.
 - This keeps the Harness desktop utility synchronous from the API caller's perspective while avoiding Tk thread-surface problems on Windows.
+
+# 2026-08-26 Gmail Picker Context Update
+
+- `/api/system/select-path` accepts `initialPath` and `browserHint` as local-only picker context.
+- The Agent runtime uses this context only to choose a friendly starting directory for file/folder selection.
+- This helper still does not inspect browser data or infer Gmail authorization state.

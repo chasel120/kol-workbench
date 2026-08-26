@@ -213,3 +213,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: moved native file/folder picker execution into a short-lived Python subprocess so Tk dialogs are not opened from the HTTP worker thread.
 - Completed: added an inline path status message near the Gmail browser buttons so click progress and errors are visible without scrolling to the bottom of the settings dialog.
 - Validation: Python compile passed, frontend script parse passed, and `git diff --check` returned only line-ending warnings.
+
+# 2026-08-26 Gmail Picker Default Directory Fix
+
+- Completed: browser executable picker now starts from the existing input path or common Chrome/Edge installation folders instead of an arbitrary root directory.
+- Completed: Profile/User Data picker now starts from the existing input path or common Chrome/Edge User Data folders.
+- Completed: stale `/api/system/select-path` `not found` errors now display a restart instruction instead of a raw backend message.
+- Validation: Python compile passed, frontend script parse passed, default directory smoke test returned a local Chrome path, and `git diff --check` returned only line-ending warnings.
