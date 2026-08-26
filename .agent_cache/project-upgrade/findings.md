@@ -129,3 +129,8 @@
 
 - Import Data and Log Reply remain useful as global shortcuts; Add Template and Generate Draft duplicated workspace-specific actions and made the top bar visually crowded.
 - The visible Agent language selector in the progress strip duplicated language controls in draft/reply workflows and distracted from the progress metrics.
+
+# 2026-08-26 Dynamic UI Language Findings
+
+- Panel language switching previously only updated static `[data-i18n]` text, so KOL card field labels, filter placeholders, progress labels, Gmail batch controls, and template-card actions could remain Chinese when the panel was set to English.
+- KOL country/category/tag values can come from imported FastMoss data and may be Chinese business values, so the desktop shell needs a lightweight display mapping for common markets and niches while preserving the underlying raw data.

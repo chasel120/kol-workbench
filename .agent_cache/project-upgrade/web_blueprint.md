@@ -340,3 +340,10 @@ MVP 暂不完成：
 - The main header can keep global shortcuts for Import Data and Log Reply.
 - Template management and draft generation actions should live in their relevant workspace panels/dialogs rather than the header.
 - The progress strip should show progress metrics only; language selection should remain in task dialogs/settings rather than as a visible progress-strip control.
+
+# 2026-08-26 Panel Language UI Update
+
+- Panel language switching must cover both static markup and dynamic render output.
+- KOL lead cards must localize field labels such as Platform, Country, Category, Followers, Sales, and Score.
+- Imported business values may be translated for display in English mode, but raw imported values remain unchanged in local storage and future Supabase sync.
+- Filter placeholders, progress labels, Gmail batch controls, selected-count text, empty states, and template-library actions must also follow the selected panel language.

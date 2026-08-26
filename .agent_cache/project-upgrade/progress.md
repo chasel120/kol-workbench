@@ -186,3 +186,9 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: restored the top Import Data and Log Reply global shortcuts because they remain primary operational entry points.
 - Completed: kept Add Template and Generate Draft out of the header because they are already available inside the relevant workflow panels/dialogs.
 - Completed: removed the visible Agent language selector from the progress strip while preserving hidden state for the draft-language workflow.
+
+# 2026-08-26 Dynamic UI Language Fix
+
+- Completed: extended panel language switching to placeholders, progress labels, KOL card field labels, selected-count text, Gmail batch controls, empty states, and template-card actions.
+- Completed: added common imported business-value display translations, including Germany, Other, Apparel & Accessories, Home/Furniture/Appliances, IT/Tech, and status/tag labels, without changing stored KOL data.
+- Validation: frontend script parse passed.

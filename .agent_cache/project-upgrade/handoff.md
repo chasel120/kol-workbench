@@ -169,3 +169,10 @@ Gmail 相关开发必须谨慎：
 - The main header keeps only Import Data and Log Reply global shortcuts.
 - Add Template and Generate Draft remain removed from the header and should be accessed from workspace panels/dialogs.
 - The progress strip no longer shows the Agent language selector. `#agent-language` remains hidden in the DOM to preserve the existing draft-language state bridge.
+
+# 2026-08-26 Dynamic UI Language Handoff
+
+- `desktop_shell/index.html` now tracks the current panel language in `state.panelLanguage`.
+- Dynamic renderers should use `uiText()` for UI labels and `translateBusinessValue()`/`localizedTag()` for display-only imported values.
+- Do not mutate stored KOL country/category/tag data when adding translations; translate only at render time.
+- If adding new dynamic UI text, add dictionary keys to both `i18n.zh` and `i18n.en` instead of hard-coding Chinese in render functions.
