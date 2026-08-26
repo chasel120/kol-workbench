@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 from . import importers
@@ -190,6 +193,91 @@ def list_kol_ids(query: str = "", priority: str = "", status: str = "", tag: str
     params.append(max(1, min(limit, 5000)))
     with connect() as conn:
         return [row["id"] for row in conn.execute(sql, params).fetchall()]
+
+
+def _num(value: Any) -> float:
+    if value in (None, ""):
+        return 0.0
+    try:
+        return float(str(value).replace(",", "").strip())
+    except ValueError:
+        return 0.0
+
+
+def create_manual_kol(data: dict[str, Any]) -> dict[str, Any]:
+    handle = str(data.get("handle") or "").strip()
+    email = str(data.get("email") or "").strip()
+    homepage_url = str(data.get("homepageUrl") or data.get("homepage_url") or "").strip()
+    if not handle and not email and not homepage_url:
+        raise ValueError("请至少填写 KOL 名称、邮箱或主页链接。")
+
+    row = {
+        "platform": str(data.get("platform") or "TikTok").strip() or "TikTok",
+        "handle": handle or email or homepage_url,
+        "email": email,
+        "whatsapp": str(data.get("whatsapp") or "").strip(),
+        "other_contacts": str(data.get("otherContacts") or data.get("other_contacts") or "").strip(),
+        "homepage_url": homepage_url,
+        "fastmoss_url": str(data.get("fastmossUrl") or data.get("fastmoss_url") or "").strip(),
+        "country": str(data.get("country") or "").strip(),
+        "category": str(data.get("category") or "").strip(),
+        "commerce_niche": str(data.get("commerceNiche") or data.get("commerce_niche") or "").strip(),
+        "followers": _num(data.get("followers")),
+        "avg_views": _num(data.get("avgViews") or data.get("avg_views")),
+        "engagement_rate": _num(data.get("engagementRate") or data.get("engagement_rate")),
+        "sales_28d": _num(data.get("sales28d") or data.get("sales_28d")),
+    }
+    score, priority = score_lead(row)
+    tags = lead_tags(row, priority)
+    dataset_id = new_id("ds_manual")
+    kol_id = new_id("kol")
+    ts = now_iso()
+    with connect() as conn:
+        session_id = create_session(conn, f"手动录入 KOL：{row['handle']}", "manual_lead_import")
+        conn.execute(
+            "INSERT INTO datasets (id, filename, source, row_count, email_count, field_map, created_at) VALUES (?, ?, 'manual', 1, ?, ?, ?)",
+            (dataset_id, f"manual-{row['handle']}", 1 if email else 0, dumps({"mode": "single_kol"}), ts),
+        )
+        conn.execute(
+            """
+            INSERT INTO kol_leads (
+              id, dataset_id, platform, handle, email, whatsapp, other_contacts, homepage_url, fastmoss_url,
+              country, language, category, commerce_niche, followers, avg_views, engagement_rate, sales_28d,
+              score, priority, tags, status, raw_json, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'scored', ?, ?, ?)
+            """,
+            (
+                kol_id,
+                dataset_id,
+                row["platform"],
+                row["handle"],
+                row["email"],
+                row["whatsapp"],
+                row["other_contacts"],
+                row["homepage_url"],
+                row["fastmoss_url"],
+                row["country"],
+                str(data.get("language") or "").strip(),
+                row["category"],
+                row["commerce_niche"],
+                row["followers"],
+                row["avg_views"],
+                row["engagement_rate"],
+                row["sales_28d"],
+                score,
+                priority,
+                dumps(tags),
+                dumps(data),
+                ts,
+                ts,
+            ),
+        )
+        enqueue_sync(conn, "kol_leads", kol_id, {"id": kol_id, "dataset_id": dataset_id, **{k: row.get(k, "") for k in ("platform", "handle", "email", "homepage_url", "country", "category", "commerce_niche")}, "score": score, "priority": priority, "tags": tags})
+        audit(conn, "kol.manual_created", "kol_lead", kol_id, f"手动录入 KOL：{row['handle']}")
+        event(conn, session_id, "task.completed", "手动 KOL 已入库并评分", {"kol_id": kol_id, "email": email})
+        finish_session(conn, session_id, f"手动录入 1 条 KOL：{row['handle']}")
+        return row_to_dict(conn.execute("SELECT * FROM kol_leads WHERE id = ?", (kol_id,)).fetchone()) or {}
 
 
 def _set_setting(conn: Any, key: str, value: str, sensitive: bool = False) -> None:
@@ -756,6 +844,75 @@ def generate_template_ai(language: str = "en", scenario: str = "first_touch", br
         )
         name = "AI generated first-touch template"
     return {"name": name, "language": language, "scenario": scenario, "subject": subject, "body": body, "tags": ["ai_generated", scenario, language]}
+
+
+def _gmail_account_for(conn: Any, email: str = "") -> dict[str, Any] | None:
+    if email:
+        row = conn.execute("SELECT * FROM gmail_accounts WHERE email = ? ORDER BY updated_at DESC LIMIT 1", (email.strip(),)).fetchone()
+        if row:
+            return row_to_dict(row)
+    row = conn.execute("SELECT * FROM gmail_accounts WHERE browser_path != '' ORDER BY updated_at DESC LIMIT 1").fetchone()
+    if row:
+        return row_to_dict(row)
+    row = conn.execute("SELECT * FROM gmail_accounts ORDER BY updated_at DESC LIMIT 1").fetchone()
+    return row_to_dict(row)
+
+
+def _browser_launch_args(account: dict[str, Any], url: str) -> list[str]:
+    browser_path = str(account.get("browser_path") or "").strip()
+    if not browser_path:
+        raise ValueError("请先在设置中配置 Gmail 账号对应的浏览器程序路径。")
+    browser = Path(browser_path)
+    if not browser.exists():
+        raise ValueError(f"浏览器程序不存在：{browser_path}")
+
+    args = [str(browser)]
+    profile_text = str(account.get("browser_profile") or "").strip()
+    if profile_text:
+        profile = Path(profile_text)
+        if profile.exists():
+            name = profile.name
+            if name.lower() == "default" or name.lower().startswith("profile"):
+                args.append(f"--user-data-dir={profile.parent}")
+                args.append(f"--profile-directory={name}")
+            else:
+                args.append(f"--user-data-dir={profile}")
+        else:
+            args.append(f"--profile-directory={profile_text}")
+    args.extend(["--new-window", url])
+    return args
+
+
+def open_gmail_compose(draft_id: str, account_email: str = "") -> dict[str, Any]:
+    with connect() as conn:
+        draft = get_draft_by_id(conn, draft_id)
+        if not draft:
+            raise ValueError("草稿不存在")
+        selected_email = (account_email or draft.get("from_account") or "").strip()
+        account = _gmail_account_for(conn, selected_email)
+        if not account:
+            raise ValueError("请先在设置中添加 Gmail 账号和浏览器配置。")
+        query = urllib.parse.urlencode(
+            {
+                "view": "cm",
+                "fs": "1",
+                "to": draft.get("to_email") or "",
+                "su": draft.get("subject") or "",
+                "body": draft.get("body") or "",
+            }
+        )
+        url = f"https://mail.google.com/mail/?{query}"
+        args = _browser_launch_args(account, url)
+        subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        audit(
+            conn,
+            "gmail.compose_opened",
+            "outreach_draft",
+            draft_id,
+            "已打开 Gmail 撰写窗口，等待人工检查并发送",
+            {"gmail_account": account.get("email"), "external_sent": False},
+        )
+        return {"ok": True, "draft": draft, "account": account.get("email"), "browser": account.get("browser_name") or account.get("browser_path"), "externalSent": False}
 
 
 def approve_draft(draft_id: str, from_account: str = "") -> dict[str, Any]:

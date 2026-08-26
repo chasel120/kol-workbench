@@ -220,3 +220,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: Profile/User Data picker now starts from the existing input path or common Chrome/Edge User Data folders.
 - Completed: stale `/api/system/select-path` `not found` errors now display a restart instruction instead of a raw backend message.
 - Validation: Python compile passed, frontend script parse passed, default directory smoke test returned a local Chrome path, and `git diff --check` returned only line-ending warnings.
+
+# 2026-08-26 Manual KOL And Gmail Compose Launch
+
+- Completed: added a manual single-KOL entry path in the import dialog.
+- Completed: manual KOL entries are saved into local SQLite, scored, tagged, queued for allowed business sync, and selected in the lead pool after refresh.
+- Completed: added a local Gmail compose launch tool that opens the configured browser/Profile with a prefilled Gmail compose URL.
+- Safety: Gmail compose launch does not auto-send, read cookies, read login state, or mark the draft as sent; users must send in Gmail and then record sent in the workbench.
+- Validation: Python compile passed, frontend script parse passed, `git diff --check` returned only line-ending warnings, and a temporary SQLite smoke test passed for manual KOL creation plus Gmail launch argument generation.

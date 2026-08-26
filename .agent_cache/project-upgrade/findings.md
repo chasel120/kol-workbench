@@ -156,3 +156,10 @@
 
 - A raw `not found` response in the picker section indicates the browser is still talking to an older local Agent process without `/api/system/select-path`.
 - File/folder pickers should use user-entered path context first, then fall back to common Chrome/Edge directories, so users are not dropped into a root directory.
+
+# 2026-08-26 Manual KOL And Gmail Compose Findings
+
+- BD users need a fast path for one-off KOL leads that are not present in a FastMoss export.
+- Manual KOL creation can reuse the same scoring/tagging/sync-queue path as uploaded datasets by creating a `manual` dataset wrapper.
+- The safe next step for Gmail integration is launching a prefilled compose window in the configured browser profile, not automatic sending.
+- Launching Gmail via browser path/Profile is local configuration assistance and must remain separate from OAuth authorization or Gmail API sending.

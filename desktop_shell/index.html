@@ -461,9 +461,20 @@
       <div class="dialog-body">
         <label class="field">文件<input id="file" type="file" accept=".xlsx,.csv,.tsv,.txt" /></label>
         <label class="field">或粘贴 CSV<textarea id="paste" placeholder="达人昵称,达人邮箱,Tiktok达人详情,粉丝总量,近28天销量"></textarea></label>
+        <div class="notice">也可以手动录入单个 KOL，保存后会进入左侧线索池并自动评分。</div>
+        <div class="form-grid">
+          <label class="field">KOL 名称<input id="manual-handle" placeholder="Kudat96_Deals" /></label>
+          <label class="field">邮箱<input id="manual-email" placeholder="creator@gmail.com" /></label>
+          <label class="field">平台<input id="manual-platform" placeholder="TikTok" value="TikTok" /></label>
+          <label class="field">主页链接<input id="manual-homepage" placeholder="https://www.tiktok.com/@handle" /></label>
+          <label class="field">国家/市场<input id="manual-country" placeholder="德国" /></label>
+          <label class="field">类目/Niche<input id="manual-category" placeholder="居家日用" /></label>
+          <label class="field">粉丝数<input id="manual-followers" type="number" min="0" placeholder="100000" /></label>
+          <label class="field">近 28 天销量<input id="manual-sales" type="number" min="0" placeholder="3000" /></label>
+        </div>
         <div class="toast" id="import-toast"></div>
       </div>
-      <div class="dialog-actions"><button class="btn" data-close>取消</button><button class="btn primary" id="import">导入并评分</button></div>
+      <div class="dialog-actions"><button class="btn" data-close>取消</button><button class="btn" id="manual-save">保存单个 KOL</button><button class="btn primary" id="import">导入并评分</button></div>
     </dialog>
 
     <dialog id="generate-dialog">
@@ -801,7 +812,14 @@
           emptyArchived: "暂无存档邮件。",
           emptyReplies: "暂无回复。可点击“回传回复”手动录入。",
           preview: "预览",
+          openGmail: "打开 Gmail 撰写",
           approveSend: "人工确认发送",
+          recordSent: "记录已发送",
+          openGmailPrompt: "选择用于打开 Gmail 的账号。系统只打开撰写窗口，不会自动发送。",
+          gmailComposeOpened: "已用 {account} 打开 Gmail 撰写窗口，请在 Gmail 页面人工检查并发送。",
+          gmailComposeFailed: "打开 Gmail 失败：{message}",
+          manualKolSaved: "已保存单个 KOL：{name}",
+          manualKolFailed: "手动录入失败：{message}",
           archive: "存档",
           restore: "恢复",
           delete: "删除",
@@ -915,7 +933,14 @@
           emptyArchived: "No archived mail yet.",
           emptyReplies: "No replies yet. Use Log Reply to add one manually.",
           preview: "Preview",
+          openGmail: "Open Gmail Compose",
           approveSend: "Confirm Send",
+          recordSent: "Record Sent",
+          openGmailPrompt: "Choose the Gmail account to open. The app only opens the compose window and will not auto-send.",
+          gmailComposeOpened: "Gmail compose opened with {account}. Please review and send manually in Gmail.",
+          gmailComposeFailed: "Failed to open Gmail: {message}",
+          manualKolSaved: "Single KOL saved: {name}",
+          manualKolFailed: "Manual KOL save failed: {message}",
           archive: "Archive",
           restore: "Restore",
           delete: "Delete",
@@ -1236,7 +1261,7 @@
       function draftActions(d) {
         if (d.status === "archived") return `<button class="btn" data-preview="${esc(d.id)}">${uiText("preview")}</button><button class="btn" data-restore="${esc(d.id)}">${uiText("restore")}</button><button class="btn" data-delete-draft="${esc(d.id)}">${uiText("delete")}</button>`;
         if (d.status === "sent_recorded") return `<button class="btn" data-preview="${esc(d.id)}">${uiText("preview")}</button><button class="btn" data-archive="${esc(d.id)}">${uiText("archive")}</button><button class="btn" data-delete-draft="${esc(d.id)}">${uiText("delete")}</button>`;
-        return `<button class="btn" data-preview="${esc(d.id)}">${uiText("preview")}</button><button class="btn primary" data-approve="${esc(d.id)}">${uiText("approveSend")}</button><button class="btn" data-archive="${esc(d.id)}">${uiText("archive")}</button><button class="btn" data-delete-draft="${esc(d.id)}">${uiText("delete")}</button>`;
+        return `<button class="btn" data-preview="${esc(d.id)}">${uiText("preview")}</button><button class="btn primary" data-open-gmail="${esc(d.id)}">${uiText("openGmail")}</button><button class="btn" data-approve="${esc(d.id)}">${uiText("recordSent")}</button><button class="btn" data-archive="${esc(d.id)}">${uiText("archive")}</button><button class="btn" data-delete-draft="${esc(d.id)}">${uiText("delete")}</button>`;
       }
 
       function activeGmailItems() {
@@ -1441,6 +1466,27 @@
         await refresh();
       }
 
+      async function saveManualKol() {
+        const payload = {
+          handle: $("#manual-handle").value,
+          email: $("#manual-email").value,
+          platform: $("#manual-platform").value,
+          homepageUrl: $("#manual-homepage").value,
+          country: $("#manual-country").value,
+          category: $("#manual-category").value,
+          commerceNiche: $("#manual-category").value,
+          followers: $("#manual-followers").value,
+          sales28d: $("#manual-sales").value
+        };
+        $("#import-toast").textContent = "正在保存单个 KOL...";
+        const result = await api("/api/kols/manual", { method: "POST", body: JSON.stringify(payload) });
+        ["manual-handle", "manual-email", "manual-homepage", "manual-country", "manual-category", "manual-followers", "manual-sales"].forEach((id) => { $(`#${id}`).value = ""; });
+        $("#manual-platform").value = "TikTok";
+        if (result.kol?.id) state.selected.add(result.kol.id);
+        $("#import-toast").textContent = uiText("manualKolSaved", { name: result.kol?.handle || result.kol?.email || "KOL" });
+        await refresh();
+      }
+
       async function selectAllMatchingLeads() {
         const query = encodeURIComponent($("#search").value);
         const priority = encodeURIComponent($("#priority").value);
@@ -1476,9 +1522,19 @@
       }
 
       async function approveDraft(id) {
-        const fromAccount = prompt("确认发送使用的 Gmail 账号。当前版本仅记录发送动作，不真实外发。", "bd-local@gmail.com") || "";
+        const draft = state.drafts.find((item) => item.id === id) || {};
+        const fromAccount = prompt("记录已发送使用的 Gmail 账号。请确认你已经在 Gmail 页面人工发送。", draft.from_account || state.gmailAccounts[0]?.email || "bd-local@gmail.com") || "";
         await api("/api/drafts/approve", { method: "POST", body: JSON.stringify({ draftId: id, fromAccount }) });
         await refresh();
+      }
+
+      async function openGmailDraft(id) {
+        const draft = state.drafts.find((item) => item.id === id) || {};
+        const fallbackAccount = draft.from_account || state.gmailAccounts[0]?.email || "";
+        const accountEmail = prompt(uiText("openGmailPrompt"), fallbackAccount);
+        if (accountEmail === null) return;
+        const result = await api("/api/gmail/open-compose", { method: "POST", body: JSON.stringify({ draftId: id, accountEmail }) });
+        $("#gmail-selected-info").textContent = uiText("gmailComposeOpened", { account: result.account || accountEmail || uiText("unselected") });
       }
 
       async function archiveDraft(id) {
@@ -1948,6 +2004,7 @@
         $("#gmail-select-page").addEventListener("click", toggleCurrentGmailPageSelection);
         $("#gmail-batch-archive").addEventListener("click", () => archiveSelectedGmail().catch((err) => { $("#gmail-selected-info").textContent = `存档失败：${err.message}`; }));
         $("#gmail-batch-delete").addEventListener("click", () => deleteSelectedGmail().catch((err) => { $("#gmail-selected-info").textContent = `删除失败：${err.message}`; }));
+        $("#manual-save").addEventListener("click", () => saveManualKol().catch((err) => { $("#import-toast").textContent = uiText("manualKolFailed", { message: err.message }); }));
         $("#gmail-list").addEventListener("change", (event) => {
           const key = event.target.dataset.mailCheck;
           if (!key) return;
@@ -1957,11 +2014,13 @@
         });
         $("#gmail-list").addEventListener("click", (event) => {
           const preview = event.target.dataset.preview;
+          const openGmail = event.target.dataset.openGmail;
           const approve = event.target.dataset.approve;
           const archive = event.target.dataset.archive;
           const restore = event.target.dataset.restore;
           const deleteDraftId = event.target.dataset.deleteDraft;
           if (preview) document.querySelector(`[data-draft-card="${CSS.escape(preview)}"]`)?.classList.toggle("open");
+          if (openGmail) openGmailDraft(openGmail).catch((err) => { $("#gmail-selected-info").textContent = uiText("gmailComposeFailed", { message: err.message }); });
           if (approve) approveDraft(approve);
           if (archive) archiveDraft(archive);
           if (restore) restoreDraft(restore);

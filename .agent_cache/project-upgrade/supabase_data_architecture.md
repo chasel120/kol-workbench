@@ -618,3 +618,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 
 - Picker `initialPath` and `browserHint` are transient local UI context values.
 - They must not be uploaded to Supabase, logged as cloud audit data, or treated as Gmail authorization evidence.
+
+# 2026-08-26 Manual KOL And Gmail Compose Data Boundary
+
+- Manual KOL business facts may enter the same future Supabase sync path as imported KOL leads.
+- Gmail compose launch events, draft subject/body, browser paths, Profile/User Data paths, and local sent-record decisions remain local runtime data.
+- Supabase may receive sanitized outreach status summaries later, but not Gmail compose URLs or generated email bodies by default.

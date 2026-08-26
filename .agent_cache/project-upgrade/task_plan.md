@@ -161,3 +161,10 @@
 - Completed: pass current path/browser context into the local picker helper.
 - Completed: use common Chrome/Edge directories as picker defaults.
 - Completed: replace raw stale-backend `not found` picker errors with restart guidance.
+
+# 2026-08-26 Manual KOL And Gmail Compose Plan Update
+
+- Completed: add manual single-KOL entry to the import flow.
+- Completed: add safe Gmail compose launch using configured browser account settings.
+- Completed: keep Gmail sending as a human action and separate local `Record Sent` step.
+- Next: design real Gmail OAuth/API sending only after the safety plan is explicitly approved.

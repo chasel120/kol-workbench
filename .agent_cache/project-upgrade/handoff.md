@@ -205,3 +205,11 @@ Gmail 相关开发必须谨慎：
 - The frontend sends the current path input value and browser name when opening either picker.
 - The backend resolves the picker start directory from the current path first, then falls back to common Chrome/Edge application or User Data folders.
 - Raw `not found` picker failures are translated into a restart instruction because they indicate a stale local Agent process.
+
+# 2026-08-26 Manual KOL And Gmail Compose Handoff
+
+- `POST /api/kols/manual` creates a one-row `manual` dataset plus a scored `kol_leads` record from the import dialog fields.
+- `desktop_shell/index.html` adds a single-KOL form inside `#import-dialog`; saved manual leads are selected after refresh so users can immediately generate a draft.
+- `POST /api/gmail/open-compose` opens a configured browser/Profile with a Gmail compose URL containing `to`, `subject`, and `body`.
+- Pending draft cards now show `Open Gmail Compose` and `Record Sent` as separate actions.
+- Compose launch does not update draft status; users must manually send in Gmail, then use `Record Sent` to move the local draft to `sent_recorded`.

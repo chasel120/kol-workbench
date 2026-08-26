@@ -456,3 +456,9 @@ Agent 入口应嵌入业务对象：
 - `/api/system/select-path` accepts `initialPath` and `browserHint` as local-only picker context.
 - The Agent runtime uses this context only to choose a friendly starting directory for file/folder selection.
 - This helper still does not inspect browser data or infer Gmail authorization state.
+
+# 2026-08-26 Manual KOL And Gmail Compose Harness Update
+
+- LeadImportAgent now supports a manual one-KOL tool path through `create_manual_kol()`, reusing scoring, tagging, audit logs, sessions, and sync queue.
+- GmailOpsAgent now has a local `open_gmail_compose()` tool that launches the configured browser/Profile with a prefilled Gmail compose URL.
+- ApprovalGate boundary remains unchanged: opening compose is allowed as a local convenience action, but external sending and local `sent_recorded` state require human action.

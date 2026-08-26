@@ -221,6 +221,10 @@ class Handler(BaseHTTPRequestHandler):
                 dataset = harness.import_dataset(body.get("filename", "upload.csv"), body.get("content", ""), body.get("contentBase64", ""))
                 self.send_json({"ok": True, "dataset": dataset})
                 return
+            if path == "/api/kols/manual":
+                kol = harness.create_manual_kol(body)
+                self.send_json({"ok": True, "kol": kol})
+                return
             if path == "/api/drafts/generate":
                 drafts = harness.generate_drafts(
                     int(body.get("limit", 20) or 20),
@@ -252,6 +256,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path == "/api/gmail/delete-batch":
                 self.send_json(harness.delete_mail_items(body.get("items") or []))
+                return
+            if path == "/api/gmail/open-compose":
+                self.send_json(harness.open_gmail_compose(body.get("draftId", ""), body.get("accountEmail", "")))
                 return
             if path == "/api/replies":
                 result = harness.save_reply(body.get("kolId", ""), body.get("replyText", ""), body.get("accountEmail", ""), body.get("intent", "needs_review"), body.get("language", "en"))

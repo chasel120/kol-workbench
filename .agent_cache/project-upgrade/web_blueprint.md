@@ -370,3 +370,10 @@ MVP 暂不完成：
 
 - Browser path pickers should open near the most likely location: current input value first, then known Chrome/Edge directories.
 - A raw backend `not found` message should never be shown directly to the user; explain that the local Agent process needs a restart.
+
+# 2026-08-26 Manual KOL And Gmail Compose UI Update
+
+- The import dialog should support both bulk file/CSV import and a compact manual single-KOL form.
+- Manual entries should return to the same lead pool immediately and be ready for draft generation.
+- Pending Gmail draft cards should separate `Open Gmail Compose` from `Record Sent`; opening Gmail is not the same as sending.
+- Browser/Profile compose launch should provide operational convenience while keeping final send confirmation in Gmail and status recording in the workbench.
