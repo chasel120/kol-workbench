@@ -253,6 +253,7 @@
       }
       .notice { border: 1px solid #b9d5ff; border-radius: 8px; padding: 10px; color: #1e3d70; background: #eef5ff; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
       .toast { min-height: 26px; color: #166534; font-size: 13px; }
+      .inline-toast { min-height: 18px; color: #166534; font-size: 12px; line-height: 1.35; }
       .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; background: #fbfdff; }
       .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .inline-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
@@ -639,6 +640,7 @@
               <button class="btn" id="browse-browser-path" type="button" data-i18n="browseExe">选择程序</button>
             </div>
           </label>
+          <div class="inline-toast" id="gmail-path-toast"></div>
           <label class="field"><span data-i18n="gmailAccounts">Gmail 账号</span><textarea id="gmail-emails" placeholder="一行一个 Gmail，或用逗号分隔&#10;bd-de-01@gmail.com&#10;bd-de-02@gmail.com" data-i18n-placeholder="gmailAccountsPlaceholder"></textarea></label>
           <label class="field"><span data-i18n="notes">备注</span><input id="gmail-notes" placeholder="用途、地区、限流策略等" data-i18n-placeholder="notesPlaceholder" /></label>
           <div class="row-actions">
@@ -959,6 +961,15 @@
           value = value.replace(`{${name}}`, replacement);
         });
         return value;
+      }
+
+      function setSettingsToast(message, inlineSelector = "") {
+        const settingsToast = $("#settings-toast");
+        if (settingsToast) settingsToast.textContent = message;
+        if (inlineSelector) {
+          const inlineToast = $(inlineSelector);
+          if (inlineToast) inlineToast.textContent = message;
+        }
       }
 
       function translateBusinessValue(value) {
@@ -1670,13 +1681,14 @@
       }
 
       async function browseBrowserPath() {
-        $("#settings-toast").textContent = uiText("browserPickerOpening");
+        setSettingsToast(uiText("browserPickerOpening"), "#gmail-path-toast");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         const result = await api("/api/system/select-path", {
           method: "POST",
           body: JSON.stringify({ kind: "file" })
         });
         if (!result.path) {
-          $("#settings-toast").textContent = uiText("browserPathEmpty");
+          setSettingsToast(uiText("browserPathEmpty"), "#gmail-path-toast");
           return;
         }
         $("#gmail-browser-path").value = result.path;
@@ -1684,21 +1696,22 @@
         if (!$("#gmail-browser-name").value.trim()) {
           $("#gmail-browser-name").value = lower.includes("msedge") ? "Microsoft Edge" : lower.includes("chrome") ? "Google Chrome" : "Browser";
         }
-        $("#settings-toast").textContent = uiText("browserPathPicked");
+        setSettingsToast(uiText("browserPathPicked"), "#gmail-path-toast");
       }
 
       async function browseBrowserProfile() {
-        $("#settings-toast").textContent = uiText("browserPickerOpening");
+        setSettingsToast(uiText("browserPickerOpening"), "#gmail-path-toast");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         const result = await api("/api/system/select-path", {
           method: "POST",
           body: JSON.stringify({ kind: "directory" })
         });
         if (!result.path) {
-          $("#settings-toast").textContent = uiText("browserPathEmpty");
+          setSettingsToast(uiText("browserPathEmpty"), "#gmail-path-toast");
           return;
         }
         $("#gmail-browser-profile").value = result.path;
-        $("#settings-toast").textContent = uiText("browserProfilePicked");
+        setSettingsToast(uiText("browserProfilePicked"), "#gmail-path-toast");
       }
 
       async function saveUser() {
@@ -1868,8 +1881,8 @@
           const model = event.target.dataset.useModel;
           if (model) $("#setting-model-name").value = model;
         });
-        $("#browse-browser-path").addEventListener("click", () => browseBrowserPath().catch((err) => { $("#settings-toast").textContent = uiText("browserPathFailed", { message: err.message }); }));
-        $("#browse-browser-profile").addEventListener("click", () => browseBrowserProfile().catch((err) => { $("#settings-toast").textContent = uiText("browserProfileFailed", { message: err.message }); }));
+        $("#browse-browser-path").addEventListener("click", () => browseBrowserPath().catch((err) => { setSettingsToast(uiText("browserPathFailed", { message: err.message }), "#gmail-path-toast"); }));
+        $("#browse-browser-profile").addEventListener("click", () => browseBrowserProfile().catch((err) => { setSettingsToast(uiText("browserProfileFailed", { message: err.message }), "#gmail-path-toast"); }));
         $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = uiText("gmailConfigFailed", { message: err.message }); }));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {

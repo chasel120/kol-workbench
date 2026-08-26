@@ -360,3 +360,8 @@ MVP 暂不完成：
 - Browser setup must show separate controls for the browser executable and the Profile/User Data folder.
 - The executable control should open a file picker; the Profile/User Data control should open a folder picker.
 - Both browse actions are desktop-only helpers backed by the local Agent, not browser-only file inputs.
+
+# 2026-08-26 Gmail Path Picker Feedback Update
+
+- Path picker actions must show click progress and errors near the path fields, not only at the bottom of a scrollable settings dialog.
+- If the local Agent picker route is stale or unavailable, the settings dialog should visibly report the failure in the Gmail authorization section.

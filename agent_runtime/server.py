@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import mimetypes
 import os
+import subprocess
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -16,36 +18,55 @@ DESKTOP_SHELL = ROOT / "desktop_shell" / "index.html"
 
 
 def select_local_path(kind: str = "file") -> str:
-    try:
-        import tkinter as tk
-        from tkinter import filedialog
-    except Exception as exc:
-        raise RuntimeError(f"System picker is unavailable: {exc}") from exc
+    picker_kind = "directory" if kind == "directory" else "file"
+    picker_script = r'''
+import sys
+import tkinter as tk
+from tkinter import filedialog
 
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes("-topmost", True)
-    root.update()
-    root.lift()
-    root.focus_force()
+kind = sys.argv[1] if len(sys.argv) > 1 else "file"
+root = tk.Tk()
+root.withdraw()
+root.attributes("-topmost", True)
+root.update()
+root.lift()
+root.focus_force()
+root.after(100, root.focus_force)
+
+try:
+    if kind == "directory":
+        path = filedialog.askdirectory(
+            parent=root,
+            title="Select browser profile or user data directory",
+        )
+    else:
+        path = filedialog.askopenfilename(
+            parent=root,
+            title="Select browser executable",
+            filetypes=[
+                ("Browser executable", "*.exe"),
+                ("All files", "*.*"),
+            ],
+        )
+    sys.stdout.write(path or "")
+finally:
+    root.destroy()
+'''
     try:
-        if kind == "directory":
-            path = filedialog.askdirectory(
-                parent=root,
-                title="Select browser profile or user data directory",
-            )
-        else:
-            path = filedialog.askopenfilename(
-                parent=root,
-                title="Select browser executable",
-                filetypes=[
-                    ("Browser executable", "*.exe"),
-                    ("All files", "*.*"),
-                ],
-            )
-        return str(path or "")
-    finally:
-        root.destroy()
+        result = subprocess.run(
+            [sys.executable, "-c", picker_script, picker_kind],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("System picker timed out.") from exc
+
+    if result.returncode != 0:
+        detail = (result.stderr or "").strip() or "System picker failed."
+        raise RuntimeError(detail)
+    return result.stdout.strip()
 
 
 class Handler(BaseHTTPRequestHandler):

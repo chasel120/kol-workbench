@@ -445,3 +445,8 @@ Agent 入口应嵌入业务对象：
 - GmailOpsAgent settings now treat the browser executable path and Profile/User Data folder path as separate local inputs.
 - The desktop utility route `/api/system/select-path` supports both file and directory selection and returns only the chosen local path string.
 - Folder selection is configuration assistance only; it does not inspect browser profiles, cookies, passwords, or login state.
+
+# 2026-08-26 Gmail Picker Process Isolation Update
+
+- `/api/system/select-path` now opens the native Tk picker in an isolated Python subprocess rather than directly inside the threaded HTTP handler.
+- This keeps the Harness desktop utility synchronous from the API caller's perspective while avoiding Tk thread-surface problems on Windows.

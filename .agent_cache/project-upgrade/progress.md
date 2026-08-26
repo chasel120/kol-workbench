@@ -207,3 +207,9 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added a dedicated folder browse action for the Profile/User Data field.
 - Completed: improved the native picker so the system dialog is parented and brought to the front.
 - Validation: Python compile passed, frontend script parse passed, and `git diff --check` returned only line-ending warnings.
+
+# 2026-08-26 Gmail Picker No-Response Fix
+
+- Completed: moved native file/folder picker execution into a short-lived Python subprocess so Tk dialogs are not opened from the HTTP worker thread.
+- Completed: added an inline path status message near the Gmail browser buttons so click progress and errors are visible without scrolling to the bottom of the settings dialog.
+- Validation: Python compile passed, frontend script parse passed, and `git diff --check` returned only line-ending warnings.

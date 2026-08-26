@@ -146,3 +146,8 @@
 - Business users distinguish the browser program path from the browser Profile/User Data folder; both need explicit controls.
 - Browser-native file inputs cannot reliably expose a local folder path for this desktop workflow, so folder selection must go through the local Agent helper route.
 - If the current running Agent process is stale, the UI may look correct while `/api/system/select-path` is unavailable; users should restart the local Agent after pulling this change.
+
+# 2026-08-26 Gmail Picker No-Response Findings
+
+- Opening Tk file dialogs directly inside `ThreadingHTTPServer` request threads can look like a no-op on Windows because the dialog may fail to surface or block the request thread.
+- Path-picker feedback must be close to the clicked buttons; writing errors only to the bottom of a scrollable settings dialog makes failures look invisible.
