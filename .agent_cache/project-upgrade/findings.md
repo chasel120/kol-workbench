@@ -163,3 +163,8 @@
 - Manual KOL creation can reuse the same scoring/tagging/sync-queue path as uploaded datasets by creating a `manual` dataset wrapper.
 - The safe next step for Gmail integration is launching a prefilled compose window in the configured browser profile, not automatic sending.
 - Launching Gmail via browser path/Profile is local configuration assistance and must remain separate from OAuth authorization or Gmail API sending.
+
+# 2026-08-26 Gmail Generate Account Selection Findings
+
+- The generate-draft dialog still had a hard-coded development sender value, so configured Gmail accounts were only available as suggestions rather than the actual selected sender.
+- Sender selection should be a controlled dropdown backed by local `gmail_accounts`, because this is an operational account choice rather than free-form campaign text.

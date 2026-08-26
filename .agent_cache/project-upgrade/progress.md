@@ -228,3 +228,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added a local Gmail compose launch tool that opens the configured browser/Profile with a prefilled Gmail compose URL.
 - Safety: Gmail compose launch does not auto-send, read cookies, read login state, or mark the draft as sent; users must send in Gmail and then record sent in the workbench.
 - Validation: Python compile passed, frontend script parse passed, `git diff --check` returned only line-ending warnings, and a temporary SQLite smoke test passed for manual KOL creation plus Gmail launch argument generation.
+
+# 2026-08-26 Gmail Generate Account Selection Fix
+
+- Completed: removed the hard-coded `bd-local@gmail.com` value from the generate-draft dialog.
+- Completed: generate-draft sender account now renders from locally configured Gmail accounts.
+- Completed: draft generation is blocked with a visible message when no Gmail account has been configured.
+- Validation: frontend script parse passed, Python compile passed, and static smoke check confirmed `#gen-account` no longer contains the placeholder sender.

@@ -462,3 +462,8 @@ Agent 入口应嵌入业务对象：
 - LeadImportAgent now supports a manual one-KOL tool path through `create_manual_kol()`, reusing scoring, tagging, audit logs, sessions, and sync queue.
 - GmailOpsAgent now has a local `open_gmail_compose()` tool that launches the configured browser/Profile with a prefilled Gmail compose URL.
 - ApprovalGate boundary remains unchanged: opening compose is allowed as a local convenience action, but external sending and local `sent_recorded` state require human action.
+
+# 2026-08-26 Gmail Sender Selection Harness Note
+
+- Outreach draft generation should receive `fromAccount` from a configured local Gmail account selected in the Desktop Shell.
+- Development placeholder senders should not be used once any real local Gmail account configuration exists.

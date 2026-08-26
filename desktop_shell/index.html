@@ -489,7 +489,7 @@
           <div class="step" id="step-review">3. 进入审核队列</div>
         </div>
         <div class="form-grid">
-          <label class="field">发送账号<input id="gen-account" list="gmail-account-options" placeholder="bd-de-01@gmail.com" value="bd-local@gmail.com" /><datalist id="gmail-account-options"></datalist></label>
+          <label class="field">发送账号<select id="gen-account"></select></label>
           <label class="field">生成语言
             <select id="gen-language">
               <option value="en">English</option>
@@ -818,6 +818,8 @@
           openGmailPrompt: "选择用于打开 Gmail 的账号。系统只打开撰写窗口，不会自动发送。",
           gmailComposeOpened: "已用 {account} 打开 Gmail 撰写窗口，请在 Gmail 页面人工检查并发送。",
           gmailComposeFailed: "打开 Gmail 失败：{message}",
+          noGmailAccountOption: "请先在设置中添加 Gmail 账号",
+          noGmailForGenerate: "请先在设置中添加 Gmail 账号，再生成草稿。",
           manualKolSaved: "已保存单个 KOL：{name}",
           manualKolFailed: "手动录入失败：{message}",
           archive: "存档",
@@ -939,6 +941,8 @@
           openGmailPrompt: "Choose the Gmail account to open. The app only opens the compose window and will not auto-send.",
           gmailComposeOpened: "Gmail compose opened with {account}. Please review and send manually in Gmail.",
           gmailComposeFailed: "Failed to open Gmail: {message}",
+          noGmailAccountOption: "Add a Gmail account in Settings first",
+          noGmailForGenerate: "Please add a Gmail account in Settings before generating drafts.",
           manualKolSaved: "Single KOL saved: {name}",
           manualKolFailed: "Manual KOL save failed: {message}",
           archive: "Archive",
@@ -1414,8 +1418,27 @@
         $("#reply-kol").innerHTML = state.kols.filter((k) => k.email).map((k) => `<option value="${esc(k.id)}">${esc(k.handle || k.email)} · ${esc(k.email)}</option>`).join("");
       }
 
+      function renderGmailAccountControls() {
+        const control = $("#gen-account");
+        if (!control) return;
+        const current = control.value;
+        const accounts = state.gmailAccounts.filter((account) => account.email);
+        if (!accounts.length) {
+          control.innerHTML = `<option value="">${esc(uiText("noGmailAccountOption"))}</option>`;
+          control.disabled = true;
+          return;
+        }
+        control.disabled = false;
+        control.innerHTML = accounts.map((account) => {
+          const meta = [account.browser_name, account.browser_profile].filter(Boolean).join(" · ");
+          const label = meta ? `${account.email} · ${meta}` : account.email;
+          return `<option value="${esc(account.email)}">${esc(label)}</option>`;
+        }).join("");
+        control.value = accounts.some((account) => account.email === current) ? current : accounts[0].email;
+      }
+
       function renderGmailAccounts() {
-        $("#gmail-account-options").innerHTML = state.gmailAccounts.map((account) => `<option value="${esc(account.email)}"></option>`).join("");
+        renderGmailAccountControls();
         $("#gmail-account-list").innerHTML = state.gmailAccounts.map((account) => `
           <div class="settings-row">
             <div>
@@ -1440,8 +1463,9 @@
       function openGenerateDialog() {
         $("#generate-subtitle").textContent = `将为 ${state.selected.size || "自动选择高分"} 个 KOL 生成 Gmail 草稿。`;
         $("#gen-language").value = normalizeDraftLanguage($("#agent-language").value);
+        renderGmailAccountControls();
         renderTemplateOptions();
-        $("#generate-status").textContent = "待开始。草稿生成后会自动刷新 Gmail 草稿队列和 KOL 状态。";
+        $("#generate-status").textContent = state.gmailAccounts.length ? "待开始。草稿生成后会自动刷新 Gmail 草稿队列和 KOL 状态。" : uiText("noGmailForGenerate");
         $$(".step").forEach((step, index) => step.classList.toggle("active", index === 0));
         $("#generate-dialog").showModal();
       }
@@ -1500,6 +1524,11 @@
 
       async function runGenerate() {
         $("#run-generate").disabled = true;
+        if (!$("#gen-account").value) {
+          $("#generate-status").textContent = uiText("noGmailForGenerate");
+          $("#run-generate").disabled = false;
+          return;
+        }
         $("#generate-status").textContent = "Agent 正在读取选中 KOL 和模板...";
         $("#step-context").classList.add("active");
         await new Promise((resolve) => setTimeout(resolve, 180));
@@ -1523,7 +1552,7 @@
 
       async function approveDraft(id) {
         const draft = state.drafts.find((item) => item.id === id) || {};
-        const fromAccount = prompt("记录已发送使用的 Gmail 账号。请确认你已经在 Gmail 页面人工发送。", draft.from_account || state.gmailAccounts[0]?.email || "bd-local@gmail.com") || "";
+        const fromAccount = prompt("记录已发送使用的 Gmail 账号。请确认你已经在 Gmail 页面人工发送。", draft.from_account || state.gmailAccounts[0]?.email || "") || "";
         await api("/api/drafts/approve", { method: "POST", body: JSON.stringify({ draftId: id, fromAccount }) });
         await refresh();
       }

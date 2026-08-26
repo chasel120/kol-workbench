@@ -624,3 +624,8 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Manual KOL business facts may enter the same future Supabase sync path as imported KOL leads.
 - Gmail compose launch events, draft subject/body, browser paths, Profile/User Data paths, and local sent-record decisions remain local runtime data.
 - Supabase may receive sanitized outreach status summaries later, but not Gmail compose URLs or generated email bodies by default.
+
+# 2026-08-26 Gmail Sender Selection Data Boundary
+
+- The selected Gmail sender is local workflow metadata for draft generation and compose launch.
+- Future Supabase sync may store sanitized outreach account aliases only after review; raw browser/Profile paths and credentials remain excluded.

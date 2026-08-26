@@ -168,3 +168,8 @@
 - Completed: add safe Gmail compose launch using configured browser account settings.
 - Completed: keep Gmail sending as a human action and separate local `Record Sent` step.
 - Next: design real Gmail OAuth/API sending only after the safety plan is explicitly approved.
+
+# 2026-08-26 Gmail Sender Selection Plan Update
+
+- Completed: replace generate-draft sender placeholder with configured Gmail account dropdown.
+- Completed: block draft generation when no local Gmail account is configured.

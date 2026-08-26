@@ -377,3 +377,8 @@ MVP 暂不完成：
 - Manual entries should return to the same lead pool immediately and be ready for draft generation.
 - Pending Gmail draft cards should separate `Open Gmail Compose` from `Record Sent`; opening Gmail is not the same as sending.
 - Browser/Profile compose launch should provide operational convenience while keeping final send confirmation in Gmail and status recording in the workbench.
+
+# 2026-08-26 Gmail Sender Selection UI Update
+
+- Generate-draft sender selection must list configured Gmail accounts, not a development placeholder.
+- If no Gmail account exists, the dialog should show a clear setup-required message and prevent draft generation.

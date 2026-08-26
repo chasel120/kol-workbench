@@ -213,3 +213,9 @@ Gmail 相关开发必须谨慎：
 - `POST /api/gmail/open-compose` opens a configured browser/Profile with a Gmail compose URL containing `to`, `subject`, and `body`.
 - Pending draft cards now show `Open Gmail Compose` and `Record Sent` as separate actions.
 - Compose launch does not update draft status; users must manually send in Gmail, then use `Record Sent` to move the local draft to `sent_recorded`.
+
+# 2026-08-26 Gmail Generate Account Selection Handoff
+
+- `#gen-account` is now a select control populated by `renderGmailAccountControls()` from `state.gmailAccounts`.
+- The generate dialog no longer defaults to `bd-local@gmail.com`; it uses the first configured Gmail account when available.
+- `runGenerate()` stops with `noGmailForGenerate` if no Gmail account is configured.
