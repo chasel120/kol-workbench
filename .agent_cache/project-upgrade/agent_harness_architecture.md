@@ -439,3 +439,9 @@ Agent 入口应嵌入业务对象：
 - The local Harness can create multiple Gmail account placeholders from one browser configuration, but each account remains independently addressable for future queueing and rate limits.
 - Browser path selection is exposed as a local desktop utility through the Agent runtime, not as a remote web capability.
 - Future OAuth work should attach authorization state to each Gmail account placeholder without reading browser cookies or taking over existing login sessions.
+
+# 2026-08-26 Gmail Folder Picker Harness Update
+
+- GmailOpsAgent settings now treat the browser executable path and Profile/User Data folder path as separate local inputs.
+- The desktop utility route `/api/system/select-path` supports both file and directory selection and returns only the chosen local path string.
+- Folder selection is configuration assistance only; it does not inspect browser profiles, cookies, passwords, or login state.

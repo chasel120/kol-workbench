@@ -25,11 +25,18 @@ def select_local_path(kind: str = "file") -> str:
     root = tk.Tk()
     root.withdraw()
     root.attributes("-topmost", True)
+    root.update()
+    root.lift()
+    root.focus_force()
     try:
         if kind == "directory":
-            path = filedialog.askdirectory(title="Select browser profile or user data directory")
+            path = filedialog.askdirectory(
+                parent=root,
+                title="Select browser profile or user data directory",
+            )
         else:
             path = filedialog.askopenfilename(
+                parent=root,
                 title="Select browser executable",
                 filetypes=[
                     ("Browser executable", "*.exe"),

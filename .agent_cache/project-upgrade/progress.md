@@ -200,3 +200,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added `POST /api/gmail-accounts/batch` and `POST /api/system/select-path`.
 - Completed: changed the desktop shell to use a browse button for browser executable path selection.
 - Validation: Python compile passed and frontend script parse passed.
+
+# 2026-08-26 Gmail Folder Picker Fix
+
+- Completed: split Gmail browser selection into browser executable path and Profile/User Data folder path.
+- Completed: added a dedicated folder browse action for the Profile/User Data field.
+- Completed: improved the native picker so the system dialog is parented and brought to the front.
+- Validation: Python compile passed, frontend script parse passed, and `git diff --check` returned only line-ending warnings.

@@ -354,3 +354,9 @@ MVP 暂不完成：
 - Browser executable path should be selected with a browse action in the local desktop app instead of being typed manually.
 - A single browser/profile/account-group entry may contain multiple Gmail accounts entered one per line or comma-separated.
 - The UI must continue to state that saved Gmail entries are placeholders only and do not read passwords, cookies, 2FA, or browser login state.
+
+# 2026-08-26 Gmail Path Picker UI Update
+
+- Browser setup must show separate controls for the browser executable and the Profile/User Data folder.
+- The executable control should open a file picker; the Profile/User Data control should open a folder picker.
+- Both browse actions are desktop-only helpers backed by the local Agent, not browser-only file inputs.

@@ -185,3 +185,10 @@ Gmail 相关开发必须谨慎：
 - The Gmail settings UI now uses `#gmail-emails` for multiple accounts and `#gmail-browser-path` for the selected browser executable.
 - This remains an authorization placeholder only; no Gmail password, browser cookie, OAuth token, 2FA code, or login state is read or stored.
 - Restart `start_kol_workbench.bat` after pulling this change so the new backend routes and SQLite migration load.
+
+# 2026-08-26 Gmail Folder Picker Handoff
+
+- Gmail settings now expose two separate local path fields: `#gmail-browser-path` for the browser executable and `#gmail-browser-profile` for the Profile/User Data folder.
+- `#browse-browser-path` calls `/api/system/select-path` with `kind: "file"`; `#browse-browser-profile` calls the same route with `kind: "directory"`.
+- The Python `select_local_path()` helper sets the Tk dialog as topmost and passes the hidden root as parent so the picker is less likely to appear behind the browser.
+- If clicking either browse button has no visible effect, first restart `start_kol_workbench.bat` so the currently running local Agent loads the updated route and script.

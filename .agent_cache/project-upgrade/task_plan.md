@@ -149,3 +149,9 @@
 - Completed: add local browser executable path selection through the local Agent runtime.
 - Completed: allow one browser/profile/account-group configuration to create multiple Gmail account placeholders.
 - Next: real Gmail OAuth should map each saved account placeholder to a separate Google authorization record without reading browser cookies or login state.
+
+# 2026-08-26 Gmail Folder Picker Plan Update
+
+- Completed: separate browser executable selection from Profile/User Data folder selection.
+- Completed: add local folder picker support through the same desktop Agent helper route.
+- Next: browser launch/OAuth design should consume these fields only after a reviewed Gmail safety plan is approved.

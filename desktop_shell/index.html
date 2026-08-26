@@ -626,12 +626,17 @@
           <p data-i18n="gmailAuthDesc" style="margin:0;color:var(--muted);font-size:12px;line-height:1.5">一个浏览器配置可绑定多个 Gmail 账号。这里只保存浏览器路径和账号占位，不读取密码、cookie 或登录态。</p>
           <div class="form-grid">
             <label class="field"><span data-i18n="browserName">浏览器名称</span><input id="gmail-browser-name" placeholder="Chrome / Edge / Chrome 德区" data-i18n-placeholder="browserNamePlaceholder" /></label>
-            <label class="field"><span data-i18n="browserProfile">Profile / 账号组</span><input id="gmail-browser-profile" placeholder="Default / Profile 1 / 德区账号组，可选" data-i18n-placeholder="browserProfilePlaceholder" /></label>
+            <label class="field"><span data-i18n="browserProfile">Profile / User Data 文件夹</span>
+              <div class="inline-field">
+                <input id="gmail-browser-profile" placeholder="C:\\Users\\用户名\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1" data-i18n-placeholder="browserProfilePlaceholder" />
+                <button class="btn" id="browse-browser-profile" type="button" data-i18n="browseFolder">选择文件夹</button>
+              </div>
+            </label>
           </div>
           <label class="field"><span data-i18n="browserPath">浏览器程序路径</span>
             <div class="inline-field">
               <input id="gmail-browser-path" placeholder="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" />
-              <button class="btn" id="browse-browser-path" type="button" data-i18n="browsePath">浏览选择</button>
+              <button class="btn" id="browse-browser-path" type="button" data-i18n="browseExe">选择程序</button>
             </div>
           </label>
           <label class="field"><span data-i18n="gmailAccounts">Gmail 账号</span><textarea id="gmail-emails" placeholder="一行一个 Gmail，或用逗号分隔&#10;bd-de-01@gmail.com&#10;bd-de-02@gmail.com" data-i18n-placeholder="gmailAccountsPlaceholder"></textarea></label>
@@ -707,10 +712,12 @@
           gmailAuthDesc: "一个浏览器配置可绑定多个 Gmail 账号。这里只保存浏览器路径和账号占位，不读取密码、cookie 或登录态。",
           browserName: "浏览器名称",
           browserNamePlaceholder: "Chrome / Edge / Chrome 德区",
-          browserProfile: "Profile / 账号组",
-          browserProfilePlaceholder: "Default / Profile 1 / 德区账号组，可选",
+          browserProfile: "Profile / User Data 文件夹",
+          browserProfilePlaceholder: "C:\\Users\\用户名\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1，可选",
           browserPath: "浏览器程序路径",
           browsePath: "浏览选择",
+          browseExe: "选择程序",
+          browseFolder: "选择文件夹",
           gmailAccounts: "Gmail 账号",
           gmailAccountsPlaceholder: "一行一个 Gmail，或用逗号分隔\nbd-de-01@gmail.com\nbd-de-02@gmail.com",
           notes: "备注",
@@ -724,6 +731,8 @@
           browserPathPicked: "已选择浏览器程序路径。",
           browserPathEmpty: "未选择路径。",
           browserPathFailed: "浏览器路径选择失败：{message}",
+          browserProfilePicked: "已选择 Profile / User Data 文件夹。",
+          browserProfileFailed: "Profile 文件夹选择失败：{message}",
           gmailConfigFailed: "Gmail 配置失败：{message}",
           close: "关闭",
           panelLanguage: "面板语言",
@@ -816,10 +825,12 @@
           gmailAuthDesc: "One browser configuration can bind multiple Gmail accounts. This only stores the browser path and account placeholders; passwords, cookies, and login state are never read.",
           browserName: "Browser Name",
           browserNamePlaceholder: "Chrome / Edge / Chrome Germany",
-          browserProfile: "Profile / Account Group",
-          browserProfilePlaceholder: "Default / Profile 1 / Germany account group, optional",
+          browserProfile: "Profile / User Data Folder",
+          browserProfilePlaceholder: "C:\\Users\\Name\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 1, optional",
           browserPath: "Browser App Path",
           browsePath: "Browse",
+          browseExe: "Choose App",
+          browseFolder: "Choose Folder",
           gmailAccounts: "Gmail Accounts",
           gmailAccountsPlaceholder: "One Gmail per line, or separated by commas\nbd-de-01@gmail.com\nbd-de-02@gmail.com",
           notes: "Notes",
@@ -833,6 +844,8 @@
           browserPathPicked: "Browser app path selected.",
           browserPathEmpty: "No path selected.",
           browserPathFailed: "Browser path selection failed: {message}",
+          browserProfilePicked: "Profile / User Data folder selected.",
+          browserProfileFailed: "Profile folder selection failed: {message}",
           gmailConfigFailed: "Gmail config failed: {message}",
           close: "Close",
           panelLanguage: "Panel Language",
@@ -1674,6 +1687,20 @@
         $("#settings-toast").textContent = uiText("browserPathPicked");
       }
 
+      async function browseBrowserProfile() {
+        $("#settings-toast").textContent = uiText("browserPickerOpening");
+        const result = await api("/api/system/select-path", {
+          method: "POST",
+          body: JSON.stringify({ kind: "directory" })
+        });
+        if (!result.path) {
+          $("#settings-toast").textContent = uiText("browserPathEmpty");
+          return;
+        }
+        $("#gmail-browser-profile").value = result.path;
+        $("#settings-toast").textContent = uiText("browserProfilePicked");
+      }
+
       async function saveUser() {
         const result = await api("/api/settings/user", {
           method: "POST",
@@ -1842,6 +1869,7 @@
           if (model) $("#setting-model-name").value = model;
         });
         $("#browse-browser-path").addEventListener("click", () => browseBrowserPath().catch((err) => { $("#settings-toast").textContent = uiText("browserPathFailed", { message: err.message }); }));
+        $("#browse-browser-profile").addEventListener("click", () => browseBrowserProfile().catch((err) => { $("#settings-toast").textContent = uiText("browserProfileFailed", { message: err.message }); }));
         $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = uiText("gmailConfigFailed", { message: err.message }); }));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {

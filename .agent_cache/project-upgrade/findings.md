@@ -140,3 +140,9 @@
 - The previous Gmail settings UI forced one Gmail email per browser/profile form submission, which made the common “one browser profile contains multiple Gmail accounts” workflow cumbersome.
 - Browser path entry should not be a free-form operational burden; the local desktop Agent can open a native file picker and return only the selected browser executable path.
 - Storing a browser path and account placeholders is still a safe MVP boundary because it does not read passwords, cookies, OAuth tokens, 2FA codes, or browser login state.
+
+# 2026-08-26 Gmail Folder Picker Findings
+
+- Business users distinguish the browser program path from the browser Profile/User Data folder; both need explicit controls.
+- Browser-native file inputs cannot reliably expose a local folder path for this desktop workflow, so folder selection must go through the local Agent helper route.
+- If the current running Agent process is stale, the UI may look correct while `/api/system/select-path` is unavailable; users should restart the local Agent after pulling this change.
