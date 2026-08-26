@@ -347,3 +347,10 @@ MVP 暂不完成：
 - KOL lead cards must localize field labels such as Platform, Country, Category, Followers, Sales, and Score.
 - Imported business values may be translated for display in English mode, but raw imported values remain unchanged in local storage and future Supabase sync.
 - Filter placeholders, progress labels, Gmail batch controls, selected-count text, empty states, and template-library actions must also follow the selected panel language.
+
+# 2026-08-26 Gmail Settings UI Update
+
+- Gmail settings should be organized by browser configuration first, then Gmail accounts under that configuration.
+- Browser executable path should be selected with a browse action in the local desktop app instead of being typed manually.
+- A single browser/profile/account-group entry may contain multiple Gmail accounts entered one per line or comma-separated.
+- The UI must continue to state that saved Gmail entries are placeholders only and do not read passwords, cookies, 2FA, or browser login state.

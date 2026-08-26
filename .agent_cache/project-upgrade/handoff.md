@@ -176,3 +176,12 @@ Gmail 相关开发必须谨慎：
 - Dynamic renderers should use `uiText()` for UI labels and `translateBusinessValue()`/`localizedTag()` for display-only imported values.
 - Do not mutate stored KOL country/category/tag data when adding translations; translate only at render time.
 - If adding new dynamic UI text, add dictionary keys to both `i18n.zh` and `i18n.en` instead of hard-coding Chinese in render functions.
+
+# 2026-08-26 Gmail Settings Handoff
+
+- `gmail_accounts.browser_path` is now a local SQLite field created by `storage.init_db()`.
+- `POST /api/gmail-accounts/batch` accepts `emails`, `browserName`, `browserPath`, `browserProfile`, and `notes`, then creates one local placeholder row per email.
+- `POST /api/system/select-path` opens a local native file picker for selecting a browser executable path. It is a desktop-only helper and should not be treated as a web/SaaS pattern.
+- The Gmail settings UI now uses `#gmail-emails` for multiple accounts and `#gmail-browser-path` for the selected browser executable.
+- This remains an authorization placeholder only; no Gmail password, browser cookie, OAuth token, 2FA code, or login state is read or stored.
+- Restart `start_kol_workbench.bat` after pulling this change so the new backend routes and SQLite migration load.

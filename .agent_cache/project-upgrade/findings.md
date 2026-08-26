@@ -134,3 +134,9 @@
 
 - Panel language switching previously only updated static `[data-i18n]` text, so KOL card field labels, filter placeholders, progress labels, Gmail batch controls, and template-card actions could remain Chinese when the panel was set to English.
 - KOL country/category/tag values can come from imported FastMoss data and may be Chinese business values, so the desktop shell needs a lightweight display mapping for common markets and niches while preserving the underlying raw data.
+
+# 2026-08-26 Gmail Settings Findings
+
+- The previous Gmail settings UI forced one Gmail email per browser/profile form submission, which made the common “one browser profile contains multiple Gmail accounts” workflow cumbersome.
+- Browser path entry should not be a free-form operational burden; the local desktop Agent can open a native file picker and return only the selected browser executable path.
+- Storing a browser path and account placeholders is still a safe MVP boundary because it does not read passwords, cookies, OAuth tokens, 2FA codes, or browser login state.

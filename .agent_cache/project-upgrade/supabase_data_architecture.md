@@ -600,3 +600,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Generated multilingual draft subject/body remain local-only runtime data and are not uploaded to Supabase by default.
 - Multilingual reply template subject/body remain local-only in the MVP.
 - If future shared template sync is approved, only explicitly approved template versions or sanitized metadata should be synced; model prompts and generated draft bodies remain excluded.
+
+# 2026-08-26 Gmail Settings Data Boundary
+
+- Gmail browser executable paths, browser profile/account-group labels, and Gmail account placeholders are stored only in local SQLite during the MVP.
+- Browser path selection does not grant Gmail access and must not be treated as OAuth authorization.
+- Future Supabase sync may store non-sensitive Gmail account status summaries, but browser paths, OAuth tokens, cookies, passwords, 2FA codes, and browser login state must remain local-only or be excluded entirely.
+- Multiple Gmail accounts under one browser configuration should still be represented as separate account records for future per-account throttling and audit summaries.

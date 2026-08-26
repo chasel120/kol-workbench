@@ -262,7 +262,7 @@ def list_gmail_accounts() -> list[dict[str, Any]]:
         return rows_to_dicts(conn.execute("SELECT * FROM gmail_accounts ORDER BY updated_at DESC").fetchall())
 
 
-def save_gmail_account(email: str, browser_name: str = "", browser_profile: str = "", notes: str = "") -> dict[str, Any]:
+def save_gmail_account(email: str, browser_name: str = "", browser_profile: str = "", notes: str = "", browser_path: str = "") -> dict[str, Any]:
     if not email.strip():
         raise ValueError("Gmail email is required.")
     account_id = new_id("gmail")
@@ -270,13 +270,24 @@ def save_gmail_account(email: str, browser_name: str = "", browser_profile: str 
     with connect() as conn:
         conn.execute(
             """
-            INSERT INTO gmail_accounts (id, email, browser_name, browser_profile, auth_status, notes, created_at, updated_at)
-            VALUES (?, ?, ?, ?, 'configured_placeholder', ?, ?, ?)
+            INSERT INTO gmail_accounts (id, email, browser_name, browser_path, browser_profile, auth_status, notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 'configured_placeholder', ?, ?, ?)
             """,
-            (account_id, email.strip(), browser_name.strip(), browser_profile.strip(), notes.strip(), ts, ts),
+            (account_id, email.strip(), browser_name.strip(), browser_path.strip(), browser_profile.strip(), notes.strip(), ts, ts),
         )
         audit(conn, "gmail_account.configured", "gmail_account", account_id, "Gmail 浏览器授权配置占位已保存")
         return row_to_dict(conn.execute("SELECT * FROM gmail_accounts WHERE id = ?", (account_id,)).fetchone()) or {}
+
+
+def save_gmail_accounts(emails: list[str], browser_name: str = "", browser_profile: str = "", notes: str = "", browser_path: str = "") -> list[dict[str, Any]]:
+    cleaned: list[str] = []
+    for email in emails:
+        value = str(email or "").strip()
+        if value and value not in cleaned:
+            cleaned.append(value)
+    if not cleaned:
+        raise ValueError("At least one Gmail email is required.")
+    return [save_gmail_account(email, browser_name, browser_profile, notes, browser_path) for email in cleaned]
 
 
 def delete_gmail_account(account_id: str) -> dict[str, Any]:

@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS gmail_accounts (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL,
   browser_name TEXT NOT NULL DEFAULT '',
+  browser_path TEXT NOT NULL DEFAULT '',
   browser_profile TEXT NOT NULL DEFAULT '',
   auth_status TEXT NOT NULL DEFAULT 'not_authorized',
   notes TEXT NOT NULL DEFAULT '',
@@ -236,6 +237,7 @@ def init_db() -> None:
         ensure_column(conn, "outreach_drafts", "archived_at", "TEXT")
         ensure_column(conn, "replies", "archived_at", "TEXT")
         ensure_column(conn, "reply_templates", "is_default", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "gmail_accounts", "browser_path", "TEXT NOT NULL DEFAULT ''")
         conn.execute(
             """
             INSERT INTO local_user_profiles (id, display_name, email, role, created_at, updated_at)

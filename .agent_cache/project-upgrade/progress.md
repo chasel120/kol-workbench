@@ -192,3 +192,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: extended panel language switching to placeholders, progress labels, KOL card field labels, selected-count text, Gmail batch controls, empty states, and template-card actions.
 - Completed: added common imported business-value display translations, including Germany, Other, Apparel & Accessories, Home/Furniture/Appliances, IT/Tech, and status/tag labels, without changing stored KOL data.
 - Validation: frontend script parse passed.
+
+# 2026-08-26 Gmail Settings Simplification
+
+- Completed: redesigned Gmail settings so a single browser configuration can bind multiple Gmail account placeholders.
+- Completed: added `browser_path` to the local Gmail account table and preserved `browser_profile` as an optional Profile/account-group label.
+- Completed: added `POST /api/gmail-accounts/batch` and `POST /api/system/select-path`.
+- Completed: changed the desktop shell to use a browse button for browser executable path selection.
+- Validation: Python compile passed and frontend script parse passed.

@@ -622,15 +622,22 @@
           </select>
         </label>
         <div class="settings-section">
-          <h3>Gmail 授权配置</h3>
+          <h3 data-i18n="gmailAuthConfig">Gmail 授权配置</h3>
+          <p data-i18n="gmailAuthDesc" style="margin:0;color:var(--muted);font-size:12px;line-height:1.5">一个浏览器配置可绑定多个 Gmail 账号。这里只保存浏览器路径和账号占位，不读取密码、cookie 或登录态。</p>
           <div class="form-grid">
-            <label class="field">Gmail 邮箱<input id="gmail-email" placeholder="bd-de-01@gmail.com" /></label>
-            <label class="field">浏览器名称<input id="gmail-browser-name" placeholder="Chrome 德区 / Edge 一号" /></label>
+            <label class="field"><span data-i18n="browserName">浏览器名称</span><input id="gmail-browser-name" placeholder="Chrome / Edge / Chrome 德区" data-i18n-placeholder="browserNamePlaceholder" /></label>
+            <label class="field"><span data-i18n="browserProfile">Profile / 账号组</span><input id="gmail-browser-profile" placeholder="Default / Profile 1 / 德区账号组，可选" data-i18n-placeholder="browserProfilePlaceholder" /></label>
           </div>
-          <label class="field">浏览器 Profile / User Data 路径<input id="gmail-browser-profile" placeholder="C:\\Users\\...\\Chrome\\User Data\\Profile 1" /></label>
-          <label class="field">备注<input id="gmail-notes" placeholder="用途、地区、限流策略等" /></label>
+          <label class="field"><span data-i18n="browserPath">浏览器程序路径</span>
+            <div class="inline-field">
+              <input id="gmail-browser-path" placeholder="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" />
+              <button class="btn" id="browse-browser-path" type="button" data-i18n="browsePath">浏览选择</button>
+            </div>
+          </label>
+          <label class="field"><span data-i18n="gmailAccounts">Gmail 账号</span><textarea id="gmail-emails" placeholder="一行一个 Gmail，或用逗号分隔&#10;bd-de-01@gmail.com&#10;bd-de-02@gmail.com" data-i18n-placeholder="gmailAccountsPlaceholder"></textarea></label>
+          <label class="field"><span data-i18n="notes">备注</span><input id="gmail-notes" placeholder="用途、地区、限流策略等" data-i18n-placeholder="notesPlaceholder" /></label>
           <div class="row-actions">
-            <button class="btn" id="add-gmail-account" type="button">添加 Gmail 配置</button>
+            <button class="btn" id="add-gmail-account" type="button" data-i18n="addGmailGroup">添加 Gmail 账号组</button>
           </div>
           <div class="settings-list" id="gmail-account-list"></div>
         </div>
@@ -696,6 +703,28 @@
           appSubtitle: "左侧管理全部 KOL 线索，右侧集中处理 Gmail 草稿、已发送和已回复。",
           settingsTitle: "设置",
           settingsSubtitle: "面板语言和大模型配置。敏感密钥后续进入系统凭据库。",
+          gmailAuthConfig: "Gmail 授权配置",
+          gmailAuthDesc: "一个浏览器配置可绑定多个 Gmail 账号。这里只保存浏览器路径和账号占位，不读取密码、cookie 或登录态。",
+          browserName: "浏览器名称",
+          browserNamePlaceholder: "Chrome / Edge / Chrome 德区",
+          browserProfile: "Profile / 账号组",
+          browserProfilePlaceholder: "Default / Profile 1 / 德区账号组，可选",
+          browserPath: "浏览器程序路径",
+          browsePath: "浏览选择",
+          gmailAccounts: "Gmail 账号",
+          gmailAccountsPlaceholder: "一行一个 Gmail，或用逗号分隔\nbd-de-01@gmail.com\nbd-de-02@gmail.com",
+          notes: "备注",
+          notesPlaceholder: "用途、地区、限流策略等",
+          addGmailGroup: "添加 Gmail 账号组",
+          noProfile: "No profile",
+          noBrowserPath: "No browser path",
+          noGmailAccounts: "暂无 Gmail 配置。这里先保存多浏览器授权占位，不会读取密码或登录态。",
+          gmailGroupSaved: "已添加 {count} 个 Gmail 账号占位。",
+          browserPickerOpening: "正在打开本机文件选择窗口...",
+          browserPathPicked: "已选择浏览器程序路径。",
+          browserPathEmpty: "未选择路径。",
+          browserPathFailed: "浏览器路径选择失败：{message}",
+          gmailConfigFailed: "Gmail 配置失败：{message}",
           close: "关闭",
           panelLanguage: "面板语言",
           modelProvider: "模型 Provider",
@@ -783,6 +812,28 @@
           appSubtitle: "Manage KOL leads on the left, and process Gmail drafts, sent records, and replies on the right.",
           settingsTitle: "Settings",
           settingsSubtitle: "Panel language and model configuration. Secrets should go to the system credential store.",
+          gmailAuthConfig: "Gmail Authorization Config",
+          gmailAuthDesc: "One browser configuration can bind multiple Gmail accounts. This only stores the browser path and account placeholders; passwords, cookies, and login state are never read.",
+          browserName: "Browser Name",
+          browserNamePlaceholder: "Chrome / Edge / Chrome Germany",
+          browserProfile: "Profile / Account Group",
+          browserProfilePlaceholder: "Default / Profile 1 / Germany account group, optional",
+          browserPath: "Browser App Path",
+          browsePath: "Browse",
+          gmailAccounts: "Gmail Accounts",
+          gmailAccountsPlaceholder: "One Gmail per line, or separated by commas\nbd-de-01@gmail.com\nbd-de-02@gmail.com",
+          notes: "Notes",
+          notesPlaceholder: "Purpose, region, rate limit strategy, etc.",
+          addGmailGroup: "Add Gmail Account Group",
+          noProfile: "No profile",
+          noBrowserPath: "No browser path",
+          noGmailAccounts: "No Gmail config yet. This only stores multi-browser authorization placeholders and never reads passwords or login state.",
+          gmailGroupSaved: "{count} Gmail account placeholders added.",
+          browserPickerOpening: "Opening the local file picker...",
+          browserPathPicked: "Browser app path selected.",
+          browserPathEmpty: "No path selected.",
+          browserPathFailed: "Browser path selection failed: {message}",
+          gmailConfigFailed: "Gmail config failed: {message}",
           close: "Close",
           panelLanguage: "Panel Language",
           modelProvider: "Model Provider",
@@ -1312,11 +1363,12 @@
           <div class="settings-row">
             <div>
               <b>${esc(account.email)}</b>
-              <p>${esc(account.browser_name || "Browser")} · ${esc(account.browser_profile || "No profile path")} · ${esc(account.auth_status)}</p>
+              <p>${esc(account.browser_name || "Browser")} · ${esc(account.browser_profile || uiText("noProfile"))} · ${esc(account.browser_path || uiText("noBrowserPath"))} · ${esc(account.auth_status)}</p>
+              ${account.notes ? `<p>${esc(account.notes)}</p>` : ""}
             </div>
-            <button class="btn" type="button" data-delete-gmail-account="${esc(account.id)}">删除</button>
+            <button class="btn" type="button" data-delete-gmail-account="${esc(account.id)}">${uiText("delete")}</button>
           </div>
-        `).join("") || `<div class="empty">暂无 Gmail 配置。这里先保存多浏览器授权占位，不会读取密码或登录态。</div>`;
+        `).join("") || `<div class="empty">${esc(uiText("noGmailAccounts"))}</div>`;
       }
 
       function renderUser() {
@@ -1579,22 +1631,47 @@
       }
 
       async function addGmailAccount() {
-        const result = await api("/api/gmail-accounts", {
+        const emails = $("#gmail-emails").value
+          .replace(/[;,，；]/g, "\n")
+          .split(/\n+/)
+          .map((email) => email.trim())
+          .filter(Boolean);
+        const result = await api("/api/gmail-accounts/batch", {
           method: "POST",
           body: JSON.stringify({
-            email: $("#gmail-email").value,
+            emails,
             browserName: $("#gmail-browser-name").value,
+            browserPath: $("#gmail-browser-path").value,
             browserProfile: $("#gmail-browser-profile").value,
             notes: $("#gmail-notes").value
           })
         });
-        state.gmailAccounts.unshift(result.account);
-        $("#gmail-email").value = "";
+        state.gmailAccounts = [...(result.accounts || []), ...state.gmailAccounts];
+        $("#gmail-emails").value = "";
         $("#gmail-browser-name").value = "";
+        $("#gmail-browser-path").value = "";
         $("#gmail-browser-profile").value = "";
         $("#gmail-notes").value = "";
         renderGmailAccounts();
-        $("#settings-toast").textContent = "Gmail 浏览器授权配置已保存为占位状态。";
+        $("#settings-toast").textContent = uiText("gmailGroupSaved", { count: (result.accounts || []).length });
+      }
+
+      async function browseBrowserPath() {
+        $("#settings-toast").textContent = uiText("browserPickerOpening");
+        const result = await api("/api/system/select-path", {
+          method: "POST",
+          body: JSON.stringify({ kind: "file" })
+        });
+        if (!result.path) {
+          $("#settings-toast").textContent = uiText("browserPathEmpty");
+          return;
+        }
+        $("#gmail-browser-path").value = result.path;
+        const lower = result.path.toLowerCase();
+        if (!$("#gmail-browser-name").value.trim()) {
+          $("#gmail-browser-name").value = lower.includes("msedge") ? "Microsoft Edge" : lower.includes("chrome") ? "Google Chrome" : "Browser";
+        }
+        $("#settings-toast").textContent = uiText("browserPathPicked");
       }
 
       async function saveUser() {
@@ -1764,7 +1841,8 @@
           const model = event.target.dataset.useModel;
           if (model) $("#setting-model-name").value = model;
         });
-        $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = `Gmail 配置失败：${err.message}`; }));
+        $("#browse-browser-path").addEventListener("click", () => browseBrowserPath().catch((err) => { $("#settings-toast").textContent = uiText("browserPathFailed", { message: err.message }); }));
+        $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = uiText("gmailConfigFailed", { message: err.message }); }));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {
           const accountId = event.target.dataset.deleteGmailAccount;

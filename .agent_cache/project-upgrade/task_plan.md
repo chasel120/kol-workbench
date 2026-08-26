@@ -142,3 +142,10 @@
 - Completed: update Harness prompts and default-template lookup so selected language is respected.
 - Completed: route manual reply follow-up draft generation through the selected draft language.
 - Next: when Gmail OAuth is implemented, store and display per-recipient preferred language metadata without uploading generated draft bodies to Supabase.
+
+# 2026-08-26 Gmail Settings Plan Update
+
+- Completed: simplify Gmail settings around a browser configuration plus one or more Gmail accounts.
+- Completed: add local browser executable path selection through the local Agent runtime.
+- Completed: allow one browser/profile/account-group configuration to create multiple Gmail account placeholders.
+- Next: real Gmail OAuth should map each saved account placeholder to a separate Google authorization record without reading browser cookies or login state.

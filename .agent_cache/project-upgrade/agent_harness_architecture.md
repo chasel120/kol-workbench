@@ -432,3 +432,10 @@ Agent 入口应嵌入业务对象：
 - ModelRouter prompts must instruct the model to write the full subject/body in the requested language while preserving brand, platform, and product names when appropriate.
 - Default template lookup is language-scoped; Harness should not silently apply a default template from a different language.
 - Multilingual template generation uses the same local-only template tool path and must still pass through human review before any Gmail action.
+
+# 2026-08-26 Gmail Settings Harness Update
+
+- GmailOpsAgent settings now distinguish browser executable path, optional browser profile/account-group label, and Gmail account email.
+- The local Harness can create multiple Gmail account placeholders from one browser configuration, but each account remains independently addressable for future queueing and rate limits.
+- Browser path selection is exposed as a local desktop utility through the Agent runtime, not as a remote web capability.
+- Future OAuth work should attach authorization state to each Gmail account placeholder without reading browser cookies or taking over existing login sessions.

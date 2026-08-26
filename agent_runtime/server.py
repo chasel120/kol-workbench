@@ -15,6 +15,32 @@ ROOT = Path(__file__).resolve().parents[1]
 DESKTOP_SHELL = ROOT / "desktop_shell" / "index.html"
 
 
+def select_local_path(kind: str = "file") -> str:
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+    except Exception as exc:
+        raise RuntimeError(f"System picker is unavailable: {exc}") from exc
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    try:
+        if kind == "directory":
+            path = filedialog.askdirectory(title="Select browser profile or user data directory")
+        else:
+            path = filedialog.askopenfilename(
+                title="Select browser executable",
+                filetypes=[
+                    ("Browser executable", "*.exe"),
+                    ("All files", "*.*"),
+                ],
+            )
+        return str(path or "")
+    finally:
+        root.destroy()
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "KOLWorkbench/0.1"
 
@@ -210,12 +236,33 @@ class Handler(BaseHTTPRequestHandler):
                             body.get("browserName", ""),
                             body.get("browserProfile", ""),
                             body.get("notes", ""),
+                            body.get("browserPath", ""),
+                        ),
+                    }
+                )
+                return
+            if path == "/api/gmail-accounts/batch":
+                raw_emails = body.get("emails") or []
+                if isinstance(raw_emails, str):
+                    raw_emails = raw_emails.replace(";", "\n").replace(",", "\n").splitlines()
+                self.send_json(
+                    {
+                        "ok": True,
+                        "accounts": harness.save_gmail_accounts(
+                            raw_emails,
+                            body.get("browserName", ""),
+                            body.get("browserProfile", ""),
+                            body.get("notes", ""),
+                            body.get("browserPath", ""),
                         ),
                     }
                 )
                 return
             if path == "/api/gmail-accounts/delete":
                 self.send_json(harness.delete_gmail_account(body.get("accountId", "")))
+                return
+            if path == "/api/system/select-path":
+                self.send_json({"ok": True, "path": select_local_path(body.get("kind", "file"))})
                 return
             if path == "/api/supabase/sync":
                 self.send_json(harness.sync_supabase())
