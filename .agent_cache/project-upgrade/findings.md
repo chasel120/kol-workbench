@@ -196,3 +196,10 @@
 - Keeping KOL lead and Gmail panels intact avoids breaking working flows while changing the information architecture.
 - A host panel above the plugin workspace makes the active profile, plugin id, local runtime, model, memory, tools, and approval boundaries immediately visible.
 - The KOL plugin frame should contain all KOL business panels so future plugins can be added without confusing them with core Harness chrome.
+
+# 2026-08-27 Native Harness UI Findings
+
+- The user wants the default screen to feel like native DeepSeek Harness Web UI, not a KOL product shell.
+- KOL-specific features should not appear in the primary sidebar or header.
+- A docked plugin window lets KOL remain available while preserving the Harness host as the main product surface.
+- The KOL progress strip is also KOL-specific and belongs inside the plugin window, not in the host workspace.

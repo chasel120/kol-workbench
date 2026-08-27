@@ -497,3 +497,11 @@ Agent 入口应嵌入业务对象：
 - Host-level UI surfaces profile, plugin id, runtime endpoint, model, tools, memory, and approval boundary.
 - Plugin-level UI owns KOL-specific panels and routes actions through the local KOL Agent API.
 - Future architecture can add more plugin modules without making KOL the root application concept.
+
+# 2026-08-27 Native Harness Host Architecture
+
+- The host shell owns Workspace, Sessions, Plugins, Models, Runtime, Memory, and Approval Gate surfaces.
+- KOL Workbench is no longer a first-level application area; it is a docked plugin module.
+- Plugin actions remain registered local tools and should be invoked only after the user opens the plugin or asks the native shell to use it.
+- The native shell can capture local session messages without starting plugin work automatically.
+- Future plugin registry work should make each plugin independently dockable and expandable.

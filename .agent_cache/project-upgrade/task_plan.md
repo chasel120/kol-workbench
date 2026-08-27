@@ -200,3 +200,11 @@
 - Completed: mount KOL Workbench as a plugin module in the main workspace.
 - Completed: preserve existing KOL business workflows inside the plugin module.
 - Next: if more plugins are added, introduce plugin switching and workspace/session lists.
+
+# 2026-08-27 Native Harness UI Plan Update
+
+- Completed: remove KOL actions from the first-level host header/sidebar.
+- Completed: add a native Harness session board as the default work area.
+- Completed: convert KOL Workbench into a collapsed bottom-right plugin dock.
+- Completed: keep KOL business actions available only after opening the plugin dock.
+- Next: implement a true plugin registry if the user adds additional plugins beyond KOL Workbench.

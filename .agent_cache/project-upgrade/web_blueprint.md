@@ -409,3 +409,11 @@ MVP 暂不完成：
 - Required host regions: active profile, plugin id, local runtime, model summary, registered tools summary, memory scope, and approval boundary.
 - The KOL plugin module should own the lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console.
 - Future modules should be added as additional plugin frames rather than as first-level app rewrites.
+
+# 2026-08-27 Native Harness Host With Docked Plugin
+
+- The default viewport should show native Harness concepts only: workspaces, sessions, runtime/model status, memory, tool service, approval gate, and plugin registry.
+- KOL business controls must not be first-level header/sidebar items.
+- KOL Workbench should appear as a compact docked plugin bar until clicked.
+- When expanded, the KOL plugin dock may show its own progress, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Agent Harness panel.
+- Header-level import/reply shortcuts should remain inside the KOL plugin dock because they are plugin actions.

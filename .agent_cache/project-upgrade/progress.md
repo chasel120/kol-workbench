@@ -268,3 +268,12 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added a Harness host panel with profile, plugin id, runtime, model, tools, memory, and approval summaries.
 - Completed: wrapped the existing lead/Gmail/template/Supabase workspace inside a `KOL Workbench Plugin` module frame.
 - Safety: this remains a local host UI change; KOL plugin actions still use the existing local Agent API and approval boundaries.
+
+# 2026-08-27 Native Harness UI With Docked KOL Plugin
+
+- Completed: removed KOL business actions from the first-level header and sidebar.
+- Completed: changed the first-level navigation to native Harness concepts: Workspace, Sessions, Plugins, and Models.
+- Completed: added a native Harness session board with workspace list, session transcript, composer, runtime/model/tool/memory/approval cards.
+- Completed: moved the KOL progress strip and all KOL business panels into a bottom-right docked plugin window.
+- Completed: the KOL plugin window is collapsed by default and only expands when the user clicks the plugin bar, Plugins entry, or Open KOL Plugin action.
+- Safety: no new Gmail automation or cloud sync was introduced.

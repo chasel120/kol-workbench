@@ -251,3 +251,13 @@ Gmail 相关开发必须谨慎：
 - The new `#harness-host` section shows the active Harness profile, plugin id, local runtime, model, tool, memory, and approval summaries.
 - The existing KOL business panels are wrapped by `#kol-plugin-module` and visually labeled as `KOL Workbench Plugin`.
 - `renderHarnessConsole()` now also updates `#host-model` from local model settings.
+
+# 2026-08-27 Native Harness UI Handoff
+
+- The top-level shell title is now just `DeepSeek Harness`.
+- Sidebar navigation is native-host oriented: `Workspace`, `Sessions`, `Plugins`, and `Models`.
+- Header actions are native-host oriented: `New Session` and `Plugins`.
+- `#harness-native` is the main visible work area and contains workspace/session/runtime panels.
+- `#kol-plugin-module` is now a fixed bottom-right dock and is collapsed by default.
+- `setKolPluginOpen()` controls the KOL plugin dock; `runNativeCommand()` opens the plugin when the native command mentions plugin/KOL/Gmail/draft/lead concepts.
+- KOL import, reply logging, lead pool, Gmail queue, template library, Supabase boundary, and KOL Harness console remain inside the docked plugin window.

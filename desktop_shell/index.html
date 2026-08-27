@@ -132,7 +132,7 @@
       .btn.ghost { background: var(--soft); }
       .btn.danger { color: var(--red); background: #fff7f7; border-color: #ffd4d4; }
       .btn:disabled { cursor: not-allowed; opacity: .52; }
-      .content { min-width: 0; min-height: 0; padding: 14px 18px 18px; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 14px; overflow: hidden; }
+      .content { min-width: 0; min-height: 0; padding: 14px 18px 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; overflow: hidden; }
       .host-panel {
         min-width: 0;
         border: 1px solid #1e2b45;
@@ -172,15 +172,28 @@
       .runtime-cell b { display: block; color: #f8fafc; font-size: 12px; }
       .runtime-cell span { display: block; margin-top: 5px; color: #9fb1cc; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
       .plugin-workspace-frame {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 40;
+        width: 300px;
+        max-width: calc(100vw - 36px);
+        height: 52px;
         min-width: 0;
         min-height: 0;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #eef4fb;
-        box-shadow: var(--shadow);
+        box-shadow: 0 22px 70px rgba(15, 23, 42, .24);
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-rows: auto;
         overflow: hidden;
+        transition: width .22s ease, height .22s ease, box-shadow .22s ease;
+      }
+      .plugin-workspace-frame.is-open {
+        width: min(1180px, calc(100vw - 260px));
+        height: min(760px, calc(100vh - 36px));
+        grid-template-rows: auto auto minmax(0, 1fr);
       }
       .plugin-workspace-frame .workspace { padding: 12px; }
       .plugin-frame-head {
@@ -196,6 +209,9 @@
       .plugin-frame-head strong { font-size: 14px; }
       .plugin-frame-head span { color: var(--muted); font-size: 12px; }
       .plugin-tools-bar { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+      .plugin-workspace-frame:not(.is-open) .plugin-tools-bar > :not(#toggle-kol-plugin),
+      .plugin-workspace-frame:not(.is-open) .pipeline,
+      .plugin-workspace-frame:not(.is-open) .workspace { display: none; }
       .plugin-chip {
         display: inline-flex;
         align-items: center;
@@ -207,6 +223,51 @@
         font-size: 11px;
         white-space: nowrap;
       }
+      .harness-native-board {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr) 320px;
+        gap: 14px;
+        overflow: hidden;
+      }
+      .native-card {
+        min-width: 0;
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+      .native-card-head { padding: 12px; border-bottom: 1px solid var(--line); }
+      .native-card-head h2, .native-card-head h3 { margin: 0; font-size: 15px; }
+      .native-card-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .native-card-body { min-height: 0; padding: 12px; overflow: auto; display: grid; align-content: start; gap: 10px; }
+      .workspace-item, .session-line, .plugin-row {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fbfdff;
+      }
+      .workspace-item b, .session-line b, .plugin-row b { display: block; font-size: 13px; }
+      .workspace-item span, .session-line span, .plugin-row span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .native-session {
+        border: 1px solid #1e2b45;
+        background: #0b1220;
+        color: #dbeafe;
+      }
+      .native-session .native-card-head { border-color: rgba(148,163,184,.2); background: rgba(15,23,42,.72); }
+      .native-session .native-card-head h2 { color: #f8fafc; }
+      .native-session .native-card-head p { color: #9fb1cc; }
+      .native-transcript { padding: 14px; overflow: auto; display: grid; align-content: start; gap: 10px; }
+      .native-message { border: 1px solid rgba(148,163,184,.2); border-radius: 8px; padding: 10px; background: rgba(15,23,42,.65); }
+      .native-message b { display: block; color: #e2e8f0; font-size: 12px; }
+      .native-message span { display: block; margin-top: 5px; color: #93a4bd; font-size: 12px; line-height: 1.5; }
+      .native-composer { padding: 12px; border-top: 1px solid rgba(148,163,184,.2); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; background: rgba(15,23,42,.8); }
+      .native-composer input { border-color: rgba(148,163,184,.28); color: #e5edf8; background: rgba(30,41,59,.76); }
       .pipeline {
         border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow);
         padding: 10px 14px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
@@ -489,7 +550,8 @@
         .app, .main { height: auto; min-height: 100vh; overflow: visible; }
         .content { overflow: visible; }
         .host-panel { grid-template-columns: minmax(0, 1fr); }
-        .workspace, .gmail-grid { grid-template-columns: minmax(0, 1fr); overflow: visible; }
+        .harness-native-board, .workspace, .gmail-grid { grid-template-columns: minmax(0, 1fr); overflow: visible; }
+        .plugin-workspace-frame.is-open { width: calc(100vw - 36px); }
         .panel { min-height: 420px; }
         .lead-list, .queue, .side-stack { max-height: 62vh; }
       }
@@ -513,11 +575,10 @@
           <span>Local profile: kol-bd · KOL Workbench loaded as plugin</span>
         </div>
         <nav class="nav">
-          <button data-nav="harness"><span class="glyph">H</span><span class="nav-label">Harness</span></button>
-          <button class="active" data-nav="leads"><span class="glyph">K</span><span class="nav-label" data-i18n="navLeads">KOL Plugin</span></button>
-          <button data-nav="gmail"><span class="glyph">G</span><span class="nav-label" data-i18n="navGmail">Gmail</span></button>
-          <button data-nav="templates"><span class="glyph">T</span><span class="nav-label" data-i18n="navTemplates">模板库</span></button>
-          <button data-nav="supabase"><span class="glyph">S</span><span class="nav-label" data-i18n="navSupabase">Supabase</span></button>
+          <button class="active" data-nav="harness"><span class="glyph">W</span><span class="nav-label">Workspace</span></button>
+          <button data-nav="sessions"><span class="glyph">S</span><span class="nav-label">Sessions</span></button>
+          <button data-nav="plugins"><span class="glyph">P</span><span class="nav-label">Plugins</span></button>
+          <button data-nav="models"><span class="glyph">M</span><span class="nav-label">Models</span></button>
         </nav>
         <div class="sidebar-footer">
           <button class="user-entry" data-open="user-dialog">
@@ -532,12 +593,12 @@
       <main class="main">
         <header class="topbar">
           <div class="title">
-            <h1 data-i18n="appTitle">DeepSeek Harness · KOL Plugin</h1>
-            <p data-i18n="appSubtitle">Harness Web UI hosts the local KOL Workbench plugin, with tools, memory, approval, and business panels in one workspace.</p>
+            <h1 data-i18n="appTitle">DeepSeek Harness</h1>
+            <p data-i18n="appSubtitle">Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and docked plugins.</p>
           </div>
           <div class="actions">
-            <button class="btn" data-open="import-dialog" data-i18n="importData">导入数据</button>
-            <button class="btn" data-open="reply-dialog" data-i18n="replyImport">回传回复</button>
+            <button class="btn" id="new-session" type="button">New Session</button>
+            <button class="btn primary" id="open-plugin-dock" type="button">Plugins</button>
           </div>
         </header>
 
@@ -545,8 +606,8 @@
           <section class="host-panel" id="harness-host">
             <div class="host-copy">
               <span class="host-kicker">DeepSeek Harness Web UI</span>
-              <h2>KOL Agent Workspace</h2>
-              <p>KOL is mounted as a local plugin module. The Harness shell handles model routing, tool calls, local memory, approval boundaries, and visible event traces.</p>
+              <h2>Agent Workspace</h2>
+              <p>The Harness shell handles model routing, tool calls, local memory, approval boundaries, and visible event traces. Business capabilities stay docked as plugins.</p>
               <div class="host-badges">
                 <span class="host-badge">profile: kol-bd</span>
                 <span class="host-badge">plugin: kol-workbench-tools</span>
@@ -561,42 +622,86 @@
             </div>
           </section>
 
-          <section class="pipeline">
-            <h2 data-i18n="pipelineTitle">触达进度</h2>
-            <div class="pipe-track">
-              <div class="pipe-node active"><b id="m-kols">0</b><span>KOL</span></div>
-              <div class="pipe-node active"><b id="m-emails">0</b><span data-i18n="reachable">可触达</span></div>
-              <div class="pipe-node active"><b id="m-drafts">0</b><span data-i18n="pendingDrafts">待审草稿</span></div>
-              <div class="pipe-node"><b id="m-sync">0</b><span data-i18n="pendingSync">待同步</span></div>
-            </div>
-            <select id="agent-language" hidden>
-              <option value="en">English</option>
-              <option value="zh">中文</option>
-              <option value="de">Deutsch</option>
-              <option value="fr">Français</option>
-              <option value="es">Español</option>
-              <option value="it">Italiano</option>
-              <option value="pt">Português</option>
-              <option value="nl">Nederlands</option>
-              <option value="pl">Polski</option>
-              <option value="ja">日本語</option>
-              <option value="ko">한국어</option>
-              <option value="ar">العربية</option>
-            </select>
+          <section class="harness-native-board" id="harness-native">
+            <aside class="native-card" id="native-sessions">
+              <div class="native-card-head">
+                <h3>Workspaces</h3>
+                <p>Select a local workspace and inspect active sessions.</p>
+              </div>
+              <div class="native-card-body">
+                <div class="workspace-item"><b>kol-bd</b><span>Local profile · desktop runtime</span></div>
+                <div class="workspace-item"><b>default</b><span>Empty Harness workspace</span></div>
+                <div class="session-line"><b>Current Session</b><span>Native Harness shell, no business plugin opened.</span></div>
+                <div class="session-line"><b>Local Events</b><span id="native-event-summary">Waiting for runtime refresh.</span></div>
+              </div>
+            </aside>
+            <section class="native-card native-session" id="native-session">
+              <div class="native-card-head">
+                <h2>Harness Session</h2>
+                <p>Use plugins only when needed. KOL tools stay docked until opened.</p>
+              </div>
+              <div class="native-transcript" id="native-transcript">
+                <div class="native-message"><b>system</b><span>DeepSeek Harness profile `kol-bd` is ready. The KOL Workbench plugin is loaded as a docked module.</span></div>
+                <div class="native-message"><b>harness</b><span>Model routing, tool registration, memory scope, and approval gates are visible before any plugin action runs.</span></div>
+              </div>
+              <div class="native-composer">
+                <input id="native-command" placeholder="Ask Harness to inspect tools, open a plugin, or start a local session..." />
+                <button class="btn primary" id="native-run" type="button">Run</button>
+              </div>
+            </section>
+            <aside class="native-card" id="native-models">
+              <div class="native-card-head">
+                <h3>Runtime</h3>
+                <p>Native host services and installed plugins.</p>
+              </div>
+              <div class="native-card-body">
+                <div class="plugin-row"><b>Model Router</b><span id="native-model">Configured in Settings</span></div>
+                <div class="plugin-row"><b>Tool Service</b><span>1 plugin installed · KOL Workbench hidden in dock</span></div>
+                <div class="plugin-row"><b>Memory</b><span>Local session state only</span></div>
+                <div class="plugin-row"><b>Approval Gate</b><span>Outbound Gmail requires human confirmation</span></div>
+                <button class="btn" id="native-open-plugin" type="button">Open KOL Plugin</button>
+              </div>
+            </aside>
           </section>
 
           <section class="plugin-workspace-frame" id="kol-plugin-module">
             <div class="plugin-frame-head">
               <div>
                 <strong>KOL Workbench Plugin</strong>
-                <span>Business capability module mounted inside Harness.</span>
+                <span>Docked plugin module. Click to expand tools.</span>
               </div>
               <div class="plugin-tools-bar">
+                <button class="btn" data-open="import-dialog" data-i18n="importData">导入数据</button>
+                <button class="btn" data-open="reply-dialog" data-i18n="replyImport">回传回复</button>
                 <span class="plugin-chip">kol_list_leads</span>
                 <span class="plugin-chip">kol_generate_gmail_drafts</span>
                 <span class="plugin-chip">kol_open_gmail_compose</span>
+                <button class="btn primary" id="toggle-kol-plugin" type="button">展开</button>
               </div>
             </div>
+            <section class="pipeline">
+              <h2 data-i18n="pipelineTitle">触达进度</h2>
+              <div class="pipe-track">
+                <div class="pipe-node active"><b id="m-kols">0</b><span>KOL</span></div>
+                <div class="pipe-node active"><b id="m-emails">0</b><span data-i18n="reachable">可触达</span></div>
+                <div class="pipe-node active"><b id="m-drafts">0</b><span data-i18n="pendingDrafts">待审草稿</span></div>
+                <div class="pipe-node"><b id="m-sync">0</b><span data-i18n="pendingSync">待同步</span></div>
+              </div>
+              <select id="agent-language" hidden>
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="nl">Nederlands</option>
+                <option value="pl">Polski</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="ar">العربية</option>
+              </select>
+            </section>
             <section class="workspace">
             <section class="panel" id="lead-panel">
               <div class="panel-head">
@@ -1017,8 +1122,8 @@
         zh: {
           settings: "设置",
           safetyNote: "外发内容必须人工确认；Agent 会话、原始邮件、Prompt 和密钥不上传 Supabase。",
-          appTitle: "DeepSeek Harness · KOL 插件",
-          appSubtitle: "以 Harness Web UI 承载本地 KOL Workbench 插件，集中展示工具、记忆、审批和业务面板。",
+          appTitle: "DeepSeek Harness",
+          appSubtitle: "原生 Harness Web UI，用于本地会话、模型路由、工具、记忆、审批和停靠插件。",
           settingsTitle: "设置",
           settingsSubtitle: "面板语言和大模型配置。敏感密钥后续进入系统凭据库。",
           gmailAuthConfig: "Gmail 授权配置",
@@ -1140,8 +1245,8 @@
         en: {
           settings: "Settings",
           safetyNote: "Outbound messages require human approval. Agent sessions, raw emails, prompts, and secrets stay local.",
-          appTitle: "DeepSeek Harness · KOL Plugin",
-          appSubtitle: "Harness Web UI hosts the local KOL Workbench plugin, with tools, memory, approval, and business panels in one workspace.",
+          appTitle: "DeepSeek Harness",
+          appSubtitle: "Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and docked plugins.",
           settingsTitle: "Settings",
           settingsSubtitle: "Panel language and model configuration. Secrets should go to the system credential store.",
           gmailAuthConfig: "Gmail Authorization Config",
@@ -1731,6 +1836,8 @@
         $("#harness-status").textContent = API_BASE ? "local runtime" : "same-origin runtime";
         const modelName = state.modelConfig?.modelName || "model not configured";
         $("#host-model").textContent = modelName;
+        $("#native-model").textContent = modelName;
+        $("#native-event-summary").textContent = `${state.harnessEvents.length} local event${state.harnessEvents.length === 1 ? "" : "s"} · ${state.gmailAccounts.length} Gmail sender slot${state.gmailAccounts.length === 1 ? "" : "s"}`;
         $("#harness-model").textContent = modelName;
         $("#harness-task-count").textContent = `${state.harnessEvents.length} local event${state.harnessEvents.length === 1 ? "" : "s"}`;
         $("#harness-memory").textContent = `${state.kols.length} leads · ${state.drafts.length} drafts · ${state.replies.length} replies`;
@@ -1779,6 +1886,43 @@
         }
         harnessLog("result", "Planner note", "No direct tool route matched. Keeping you in the Harness Console for review.");
         focusPanel("#harness-console");
+      }
+
+      function setKolPluginOpen(open) {
+        const module = $("#kol-plugin-module");
+        module.classList.toggle("is-open", open);
+        $("#toggle-kol-plugin").textContent = open ? "收起" : "展开";
+        if (open) pulseElement(module);
+      }
+
+      function appendNativeMessage(role, message) {
+        const transcript = $("#native-transcript");
+        if (!transcript) return;
+        transcript.insertAdjacentHTML("beforeend", `<div class="native-message"><b>${esc(role)}</b><span>${esc(message)}</span></div>`);
+        transcript.scrollTop = transcript.scrollHeight;
+      }
+
+      function runNativeCommand(raw) {
+        const text = String(raw || "").trim();
+        if (!text) {
+          appendNativeMessage("harness", "No task received. Try opening the plugin dock or inspecting the model settings.");
+          return;
+        }
+        appendNativeMessage("user", text);
+        const normalized = text.toLowerCase();
+        if (/plugin|kol|lead|gmail|draft|插件|线索|草稿|邮件/.test(normalized)) {
+          setKolPluginOpen(true);
+          harnessLog("planner", "Plugin opened from native shell", text);
+          appendNativeMessage("harness", "Opened the KOL Workbench plugin dock. Plugin actions still run through local tools and approval gates.");
+          return;
+        }
+        if (/model|settings|provider|模型|设置/.test(normalized)) {
+          $("#settings-dialog").showModal();
+          appendNativeMessage("harness", "Opened Settings for model routing and local Gmail placeholders.");
+          return;
+        }
+        harnessLog("planner", "Native shell task", text);
+        appendNativeMessage("harness", "Task captured in the native Harness shell. No plugin action was started.");
       }
 
       function renderTemplates() {
@@ -2352,25 +2496,22 @@
 
       function handleNav(target) {
         setNavActive(target);
-        if (target === "leads") {
-          focusPanel("#lead-panel");
-          return;
-        }
-        if (target === "gmail") {
-          switchGmailTab("drafts");
-          focusPanel("#gmail-panel");
-          return;
-        }
-        if (target === "templates") {
-          focusPanel("#template-section");
-          return;
-        }
         if (target === "harness") {
-          focusPanel("#harness-host");
+          focusPanel("#harness-native");
           return;
         }
-        if (target === "supabase") {
-          focusPanel("#supabase-section");
+        if (target === "sessions") {
+          focusPanel("#native-sessions");
+          return;
+        }
+        if (target === "plugins") {
+          setKolPluginOpen(true);
+          focusPanel("#kol-plugin-module");
+          return;
+        }
+        if (target === "models") {
+          focusPanel("#native-models");
+          return;
         }
       }
 
@@ -2402,6 +2543,28 @@
           const prompt = event.target.dataset.harnessPrompt;
           if (prompt) runHarnessCommand(prompt);
         });
+        $("#new-session").addEventListener("click", () => {
+          appendNativeMessage("harness", "Started a new local Harness session placeholder. No plugin task is running yet.");
+          harnessLog("planner", "native_session.created", "A new local session placeholder was created in the Harness shell.");
+        });
+        $("#open-plugin-dock").addEventListener("click", () => setKolPluginOpen(true));
+        $("#native-open-plugin").addEventListener("click", () => setKolPluginOpen(true));
+        $("#native-run").addEventListener("click", () => {
+          const input = $("#native-command");
+          runNativeCommand(input.value);
+          input.value = "";
+        });
+        $("#native-command").addEventListener("keydown", (event) => {
+          if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+            event.preventDefault();
+            $("#native-run").click();
+          }
+        });
+        $("#toggle-kol-plugin").addEventListener("click", (event) => {
+          event.stopPropagation();
+          setKolPluginOpen(!$("#kol-plugin-module").classList.contains("is-open"));
+        });
+        $("#kol-plugin-module .plugin-frame-head").addEventListener("click", () => setKolPluginOpen(true));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {
           const accountId = event.target.dataset.deleteGmailAccount;

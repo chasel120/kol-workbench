@@ -654,3 +654,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Treat the Harness host UI as a local orchestration shell, not as a Supabase data producer.
 - Plugin id, local runtime label, and profile name may be displayed in the UI, but they do not require Supabase persistence in the MVP.
 - KOL plugin business facts may continue through the approved Supabase sync boundary; host/session events remain local-only unless explicitly redesigned later.
+
+# 2026-08-27 Native Harness UI Data Boundary
+
+- Native Harness session messages in the host panel are local UI/session state and must not be synced to Supabase.
+- Dock open/close state is local UI state only.
+- KOL plugin business data keeps the existing Supabase boundary only after plugin actions run; simply loading or opening the plugin does not create cloud records.
