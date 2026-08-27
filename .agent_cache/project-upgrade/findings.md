@@ -189,3 +189,10 @@
 - The UI needs explicit lanes for Model, Harness, Tools, Memory, and Approval so the user can see why the Agent is safe and controllable.
 - Live state chips such as pending review count and local memory counts make the panel feel operational rather than decorative.
 - The Harness panel should stay next to Gmail work because Gmail draft approval is the highest-risk current flow.
+
+# 2026-08-27 Harness Host UI Findings
+
+- The user's latest direction means Harness should be the product shell and KOL should be framed as a plugin module.
+- Keeping KOL lead and Gmail panels intact avoids breaking working flows while changing the information architecture.
+- A host panel above the plugin workspace makes the active profile, plugin id, local runtime, model, memory, tools, and approval boundaries immediately visible.
+- The KOL plugin frame should contain all KOL business panels so future plugins can be added without confusing them with core Harness chrome.

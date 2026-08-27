@@ -260,3 +260,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: wired the panel to live local state for model name, event count, lead/draft/reply memory counts, and pending review count.
 - Safety: the richer panel is still a UI/control layer only; it does not add background Gmail sending or cloud sync of local session content.
 - Validation: frontend script parse passed and Python compile passed.
+
+# 2026-08-27 Harness Host UI And KOL Plugin Module
+
+- Completed: reframed the desktop shell as a DeepSeek Harness-style host UI rather than a KOL-first app shell.
+- Completed: changed the sidebar/header to present `DeepSeek Harness · KOL Plugin`.
+- Completed: added a Harness host panel with profile, plugin id, runtime, model, tools, memory, and approval summaries.
+- Completed: wrapped the existing lead/Gmail/template/Supabase workspace inside a `KOL Workbench Plugin` module frame.
+- Safety: this remains a local host UI change; KOL plugin actions still use the existing local Agent API and approval boundaries.

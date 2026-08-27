@@ -489,3 +489,11 @@ Agent 入口应嵌入业务对象：
 - The panel regions map to architecture components: ModelRouter, TaskRunner, ToolRegistry, local memory/runtime state, and ApprovalGate.
 - Current metrics are read from local state only and should later be replaced by structured TaskRunner/EventLog snapshots.
 - The ApprovalGate lane must remain visually present whenever Gmail or outbound copy workflows are visible.
+
+# 2026-08-27 Harness Host Architecture
+
+- The top-level desktop shell now represents the Harness host.
+- KOL Workbench is framed as an installed plugin module, matching the external DeepSeek Harness plugin bundle direction.
+- Host-level UI surfaces profile, plugin id, runtime endpoint, model, tools, memory, and approval boundary.
+- Plugin-level UI owns KOL-specific panels and routes actions through the local KOL Agent API.
+- Future architecture can add more plugin modules without making KOL the root application concept.

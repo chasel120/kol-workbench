@@ -193,3 +193,10 @@
 - Completed: add explicit Model, Harness, Tool Registry, Memory Scope, and Approval Gate regions.
 - Completed: bind the panel to current local model/settings and workspace counts.
 - Next: add a dedicated Harness workbench mode only if the user wants the Agent panel to become the primary page instead of a right-side operations panel.
+
+# 2026-08-27 Harness Host UI Plan Update
+
+- Completed: make DeepSeek Harness the top-level desktop shell framing.
+- Completed: mount KOL Workbench as a plugin module in the main workspace.
+- Completed: preserve existing KOL business workflows inside the plugin module.
+- Next: if more plugins are added, introduce plugin switching and workspace/session lists.

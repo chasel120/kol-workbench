@@ -243,3 +243,11 @@ Gmail 相关开发必须谨慎：
 - The Gmail right-side column was widened from `320px` to `minmax(360px, 430px)` so the panel has enough room.
 - New live bindings in `renderHarnessConsole()` update `#harness-model`, `#harness-task-count`, `#harness-memory`, and `#harness-approval`.
 - Future Harness event work should preserve these panel regions and replace the current in-memory event list with structured local TaskRunner/EventLog data.
+
+# 2026-08-27 Harness Host UI Handoff
+
+- `desktop_shell/index.html` now presents the top-level shell as `DeepSeek Harness · KOL Plugin`.
+- The sidebar brand is `DeepSeek Harness`; KOL appears as the `KOL Plugin` navigation item.
+- The new `#harness-host` section shows the active Harness profile, plugin id, local runtime, model, tool, memory, and approval summaries.
+- The existing KOL business panels are wrapped by `#kol-plugin-module` and visually labeled as `KOL Workbench Plugin`.
+- `renderHarnessConsole()` now also updates `#host-model` from local model settings.

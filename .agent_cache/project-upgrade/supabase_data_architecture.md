@@ -648,3 +648,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Harness panel counters are derived from local runtime state and should not create new Supabase records.
 - Model names may be displayed in the panel as local configuration metadata, but API keys and provider secrets remain excluded.
 - Memory Scope text should summarize local counts only; it must not expose or sync raw session text, generated draft bodies, or raw replies.
+
+# 2026-08-27 Harness Host Data Boundary
+
+- Treat the Harness host UI as a local orchestration shell, not as a Supabase data producer.
+- Plugin id, local runtime label, and profile name may be displayed in the UI, but they do not require Supabase persistence in the MVP.
+- KOL plugin business facts may continue through the approved Supabase sync boundary; host/session events remain local-only unless explicitly redesigned later.

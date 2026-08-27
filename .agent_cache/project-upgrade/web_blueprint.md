@@ -402,3 +402,10 @@ MVP 暂不完成：
 - Required panel regions: `Model -> Harness` architecture strip, Task Runner lane, Tool Registry lane, Memory Scope lane, Approval Gate lane, quick tool chips, event stream, and command input.
 - The panel should show live operational counts from local state where available.
 - The panel may use a focused dark console treatment inside the otherwise light operational dashboard, as long as it remains compact and readable.
+
+# 2026-08-27 Harness Host UI Update
+
+- The first-level UI should read as a DeepSeek Harness-style host, with KOL presented as an installed plugin module.
+- Required host regions: active profile, plugin id, local runtime, model summary, registered tools summary, memory scope, and approval boundary.
+- The KOL plugin module should own the lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console.
+- Future modules should be added as additional plugin frames rather than as first-level app rewrites.
