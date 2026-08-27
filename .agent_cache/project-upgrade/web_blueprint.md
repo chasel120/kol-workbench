@@ -382,3 +382,8 @@ MVP 暂不完成：
 
 - Generate-draft sender selection must list configured Gmail accounts, not a development placeholder.
 - If no Gmail account exists, the dialog should show a clear setup-required message and prevent draft generation.
+
+# 2026-08-27 Harness Plugin UI/Product Note
+
+- The Harness plugin is not a new UI surface; it exposes the existing local desktop Web runtime to external Harness agents.
+- Product behavior should still be owned by the KOL Workbench UI and local Agent API, while Harness tools orchestrate the same approved actions.

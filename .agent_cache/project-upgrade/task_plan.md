@@ -173,3 +173,9 @@
 
 - Completed: replace generate-draft sender placeholder with configured Gmail account dropdown.
 - Completed: block draft generation when no local Gmail account is configured.
+
+# 2026-08-27 DeepSeek Harness Plugin Plan Update
+
+- Completed: extract the main DeepSeek Harness plugin development pattern.
+- Completed: create a bundle-style plugin for importing KOL Workbench tools into Harness.
+- Next: after DeepSeek Harness is installed locally, test `dsh plugin add` against a real profile and adjust patch syntax if the installed version differs.

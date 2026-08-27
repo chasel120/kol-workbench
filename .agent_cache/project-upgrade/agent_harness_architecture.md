@@ -467,3 +467,10 @@ Agent 入口应嵌入业务对象：
 
 - Outreach draft generation should receive `fromAccount` from a configured local Gmail account selected in the Desktop Shell.
 - Development placeholder senders should not be used once any real local Gmail account configuration exists.
+
+# 2026-08-27 DeepSeek Harness Plugin Architecture
+
+- Added an external DeepSeek Harness adapter under `harness_plugins/kol-workbench-plugin`.
+- The adapter registers model-callable tools but delegates all business mutations to the local KOL Workbench Agent API.
+- This keeps KOL Workbench as the system of record and avoids duplicating SQLite access logic in Harness.
+- Harness agents may orchestrate lead creation, draft generation, compose opening, and sent-record updates through approved local tools.

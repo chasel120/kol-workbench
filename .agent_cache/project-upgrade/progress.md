@@ -235,3 +235,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: generate-draft sender account now renders from locally configured Gmail accounts.
 - Completed: draft generation is blocked with a visible message when no Gmail account has been configured.
 - Validation: frontend script parse passed, Python compile passed, and static smoke check confirmed `#gen-account` no longer contains the placeholder sender.
+
+# 2026-08-27 DeepSeek Harness Plugin Bundle
+
+- Completed: reviewed the DeepSeek Harness basic development pattern and extracted the plugin structure: `apply(ctx)`, `inject = ['tools']`, `defineTool`, and `dsh.bundle.patch`.
+- Completed: added `harness_plugins/kol-workbench-plugin` as a bundle-style Harness plugin for the local KOL Workbench runtime.
+- Completed: exposed local tools for status, lead listing, manual lead creation, draft generation, draft listing, Gmail compose launch, and sent-record updates.
+- Safety: plugin calls only the local KOL Workbench Agent API and preserves the no-auto-send Gmail boundary.
+- Validation: `node --check` passed, package manifest smoke test passed, and `git diff --check` returned only line-ending warnings.

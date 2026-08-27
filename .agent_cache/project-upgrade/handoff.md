@@ -219,3 +219,12 @@ Gmail 相关开发必须谨慎：
 - `#gen-account` is now a select control populated by `renderGmailAccountControls()` from `state.gmailAccounts`.
 - The generate dialog no longer defaults to `bd-local@gmail.com`; it uses the first configured Gmail account when available.
 - `runGenerate()` stops with `noGmailForGenerate` if no Gmail account is configured.
+
+# 2026-08-27 DeepSeek Harness Plugin Handoff
+
+- Added `harness_plugins/kol-workbench-plugin/package.json`, `index.js`, `cordis.patch.yml`, and `README.md`.
+- The plugin package name is `dsh-kol-workbench-plugin` and the Cordis plugin id is `kol-workbench-tools`.
+- `index.js` exports `name`, `inject = ['tools']`, and `apply(ctx, config)`.
+- Tools call the local runtime at `config.baseUrl`, `KOL_WORKBENCH_URL`, or `http://127.0.0.1:8766`.
+- Import example: `dsh plugin --profile kol-bd add ./harness_plugins/kol-workbench-plugin`.
+- The plugin exposes Gmail compose launch only; it does not automate sending or read browser/Gmail secrets.

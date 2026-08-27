@@ -629,3 +629,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 
 - The selected Gmail sender is local workflow metadata for draft generation and compose launch.
 - Future Supabase sync may store sanitized outreach account aliases only after review; raw browser/Profile paths and credentials remain excluded.
+
+# 2026-08-27 DeepSeek Harness Plugin Data Boundary
+
+- The Harness plugin is a local API bridge and must not bypass the existing Supabase exclusion rules.
+- Tool outputs can expose local summaries to the Harness session, but generated draft bodies, Gmail compose URLs, browser paths, and secrets remain excluded from Supabase by default.
+- Any future cloud synchronization triggered through Harness must still use the KOL Workbench local Agent sync manager.

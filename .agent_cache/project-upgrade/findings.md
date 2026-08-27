@@ -168,3 +168,10 @@
 
 - The generate-draft dialog still had a hard-coded development sender value, so configured Gmail accounts were only available as suggestions rather than the actual selected sender.
 - Sender selection should be a controlled dropdown backed by local `gmail_accounts`, because this is an operational account choice rather than free-form campaign text.
+
+# 2026-08-27 DeepSeek Harness Plugin Findings
+
+- DeepSeek Harness plugin development is centered on Cordis services: a plugin exports `apply(ctx)` and registers capabilities through injected services.
+- Tool plugins should inject `tools` and register model-callable tools through `defineTool`.
+- A bundle package can declare `dsh.bundle.patch` in `package.json`, making it installable into a Harness profile.
+- KOL Workbench should be exposed to Harness through local Agent API tools, not by importing SQLite internals directly.
