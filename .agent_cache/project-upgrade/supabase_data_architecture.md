@@ -660,3 +660,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Native Harness session messages in the host panel are local UI/session state and must not be synced to Supabase.
 - Dock open/close state is local UI state only.
 - KOL plugin business data keeps the existing Supabase boundary only after plugin actions run; simply loading or opening the plugin does not create cloud records.
+
+# 2026-08-27 Page-Based Plugin And @Mention Data Boundary
+
+- Switching between the native Harness page and the KOL plugin page is local UI state only.
+- Native Harness session text, including messages created by `@KOL`, remains local session/runtime data and must not be synced to Supabase.
+- The `@KOL` summary may include aggregate counts and non-sensitive tag summaries from local state, but it must not include raw draft bodies, raw reply text, browser paths, Gmail compose URLs, OAuth tokens, cookies, passwords, 2FA codes, or model API keys.
+- Opening the KOL plugin page does not create Supabase records by itself; only approved business sync actions may write allowed KOL business facts.

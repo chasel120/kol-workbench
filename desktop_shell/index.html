@@ -171,29 +171,18 @@
       }
       .runtime-cell b { display: block; color: #f8fafc; font-size: 12px; }
       .runtime-cell span { display: block; margin-top: 5px; color: #9fb1cc; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+      .module-page[hidden] { display: none !important; }
       .plugin-workspace-frame {
-        position: fixed;
-        right: 18px;
-        bottom: 18px;
-        z-index: 40;
-        width: 300px;
-        max-width: calc(100vw - 36px);
-        height: 52px;
         min-width: 0;
         min-height: 0;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #eef4fb;
-        box-shadow: 0 22px 70px rgba(15, 23, 42, .24);
+        box-shadow: var(--shadow);
         display: grid;
-        grid-template-rows: auto;
-        overflow: hidden;
-        transition: width .22s ease, height .22s ease, box-shadow .22s ease;
-      }
-      .plugin-workspace-frame.is-open {
-        width: min(1180px, calc(100vw - 260px));
-        height: min(760px, calc(100vh - 36px));
         grid-template-rows: auto auto minmax(0, 1fr);
+        overflow: hidden;
+        animation: pageIn .2s ease;
       }
       .plugin-workspace-frame .workspace { padding: 12px; }
       .plugin-frame-head {
@@ -209,9 +198,6 @@
       .plugin-frame-head strong { font-size: 14px; }
       .plugin-frame-head span { color: var(--muted); font-size: 12px; }
       .plugin-tools-bar { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
-      .plugin-workspace-frame:not(.is-open) .plugin-tools-bar > :not(#toggle-kol-plugin),
-      .plugin-workspace-frame:not(.is-open) .pipeline,
-      .plugin-workspace-frame:not(.is-open) .workspace { display: none; }
       .plugin-chip {
         display: inline-flex;
         align-items: center;
@@ -230,6 +216,11 @@
         grid-template-columns: 260px minmax(0, 1fr) 320px;
         gap: 14px;
         overflow: hidden;
+        animation: pageIn .2s ease;
+      }
+      @keyframes pageIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       .native-card {
         min-width: 0;
@@ -551,7 +542,6 @@
         .content { overflow: visible; }
         .host-panel { grid-template-columns: minmax(0, 1fr); }
         .harness-native-board, .workspace, .gmail-grid { grid-template-columns: minmax(0, 1fr); overflow: visible; }
-        .plugin-workspace-frame.is-open { width: calc(100vw - 36px); }
         .panel { min-height: 420px; }
         .lead-list, .queue, .side-stack { max-height: 62vh; }
       }
@@ -594,7 +584,7 @@
         <header class="topbar">
           <div class="title">
             <h1 data-i18n="appTitle">DeepSeek Harness</h1>
-            <p data-i18n="appSubtitle">Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and docked plugins.</p>
+            <p data-i18n="appSubtitle">Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and page-based plugins.</p>
           </div>
           <div class="actions">
             <button class="btn" id="new-session" type="button">New Session</button>
@@ -607,7 +597,7 @@
             <div class="host-copy">
               <span class="host-kicker">DeepSeek Harness Web UI</span>
               <h2>Agent Workspace</h2>
-              <p>The Harness shell handles model routing, tool calls, local memory, approval boundaries, and visible event traces. Business capabilities stay docked as plugins.</p>
+              <p>The Harness shell handles model routing, tool calls, local memory, approval boundaries, and visible event traces. Business capabilities run as plugin pages and can be mentioned from sessions.</p>
               <div class="host-badges">
                 <span class="host-badge">profile: kol-bd</span>
                 <span class="host-badge">plugin: kol-workbench-tools</span>
@@ -622,7 +612,7 @@
             </div>
           </section>
 
-          <section class="harness-native-board" id="harness-native">
+          <section class="harness-native-board module-page" id="harness-native">
             <aside class="native-card" id="native-sessions">
               <div class="native-card-head">
                 <h3>Workspaces</h3>
@@ -638,14 +628,14 @@
             <section class="native-card native-session" id="native-session">
               <div class="native-card-head">
                 <h2>Harness Session</h2>
-                <p>Use plugins only when needed. KOL tools stay docked until opened.</p>
+                <p>Use plugins only when needed. Type @KOL to inject the KOL plugin summary into this session.</p>
               </div>
               <div class="native-transcript" id="native-transcript">
-                <div class="native-message"><b>system</b><span>DeepSeek Harness profile `kol-bd` is ready. The KOL Workbench plugin is loaded as a docked module.</span></div>
+                <div class="native-message"><b>system</b><span>DeepSeek Harness profile `kol-bd` is ready. The KOL Workbench plugin is loaded as a separate plugin page.</span></div>
                 <div class="native-message"><b>harness</b><span>Model routing, tool registration, memory scope, and approval gates are visible before any plugin action runs.</span></div>
               </div>
               <div class="native-composer">
-                <input id="native-command" placeholder="Ask Harness to inspect tools, open a plugin, or start a local session..." />
+                <input id="native-command" placeholder="Ask Harness to inspect tools, open a plugin, or type @KOL for a lead summary..." />
                 <button class="btn primary" id="native-run" type="button">Run</button>
               </div>
             </section>
@@ -656,19 +646,19 @@
               </div>
               <div class="native-card-body">
                 <div class="plugin-row"><b>Model Router</b><span id="native-model">Configured in Settings</span></div>
-                <div class="plugin-row"><b>Tool Service</b><span>1 plugin installed · KOL Workbench hidden in dock</span></div>
+                <div class="plugin-row"><b>Tool Service</b><span>1 plugin installed · KOL Workbench available as a plugin page</span></div>
                 <div class="plugin-row"><b>Memory</b><span>Local session state only</span></div>
                 <div class="plugin-row"><b>Approval Gate</b><span>Outbound Gmail requires human confirmation</span></div>
-                <button class="btn" id="native-open-plugin" type="button">Open KOL Plugin</button>
+                <button class="btn" id="native-open-plugin" type="button">Open KOL Plugin Page</button>
               </div>
             </aside>
           </section>
 
-          <section class="plugin-workspace-frame" id="kol-plugin-module">
+          <section class="plugin-workspace-frame module-page" id="kol-plugin-module" hidden>
             <div class="plugin-frame-head">
               <div>
                 <strong>KOL Workbench Plugin</strong>
-                <span>Docked plugin module. Click to expand tools.</span>
+                <span>Plugin module page. Use @KOL in the Harness session to pull its current summary.</span>
               </div>
               <div class="plugin-tools-bar">
                 <button class="btn" data-open="import-dialog" data-i18n="importData">导入数据</button>
@@ -676,7 +666,7 @@
                 <span class="plugin-chip">kol_list_leads</span>
                 <span class="plugin-chip">kol_generate_gmail_drafts</span>
                 <span class="plugin-chip">kol_open_gmail_compose</span>
-                <button class="btn primary" id="toggle-kol-plugin" type="button">展开</button>
+                <button class="btn primary" id="toggle-kol-plugin" type="button">Back to Session</button>
               </div>
             </div>
             <section class="pipeline">
@@ -1123,7 +1113,7 @@
           settings: "设置",
           safetyNote: "外发内容必须人工确认；Agent 会话、原始邮件、Prompt 和密钥不上传 Supabase。",
           appTitle: "DeepSeek Harness",
-          appSubtitle: "原生 Harness Web UI，用于本地会话、模型路由、工具、记忆、审批和停靠插件。",
+          appSubtitle: "原生 Harness Web UI，用于本地会话、模型路由、工具、记忆、审批和页面插件。",
           settingsTitle: "设置",
           settingsSubtitle: "面板语言和大模型配置。敏感密钥后续进入系统凭据库。",
           gmailAuthConfig: "Gmail 授权配置",
@@ -1246,7 +1236,7 @@
           settings: "Settings",
           safetyNote: "Outbound messages require human approval. Agent sessions, raw emails, prompts, and secrets stay local.",
           appTitle: "DeepSeek Harness",
-          appSubtitle: "Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and docked plugins.",
+          appSubtitle: "Native Harness Web UI for local sessions, model routing, tools, memory, approvals, and page-based plugins.",
           settingsTitle: "Settings",
           settingsSubtitle: "Panel language and model configuration. Secrets should go to the system credential store.",
           gmailAuthConfig: "Gmail Authorization Config",
@@ -1888,11 +1878,33 @@
         focusPanel("#harness-console");
       }
 
+      function showWorkbenchView(view, focusSelector, activeNav) {
+        const pluginPage = view === "kol";
+        $("#harness-native").hidden = pluginPage;
+        $("#kol-plugin-module").hidden = !pluginPage;
+        setNavActive(activeNav || (pluginPage ? "plugins" : "harness"));
+        const target = focusSelector || (pluginPage ? "#kol-plugin-module" : "#harness-native");
+        requestAnimationFrame(() => focusPanel(target));
+      }
+
       function setKolPluginOpen(open) {
-        const module = $("#kol-plugin-module");
-        module.classList.toggle("is-open", open);
-        $("#toggle-kol-plugin").textContent = open ? "收起" : "展开";
-        if (open) pulseElement(module);
+        showWorkbenchView(open ? "kol" : "harness");
+      }
+
+      function kolPluginSummary() {
+        const reachable = state.kols.filter((kol) => kol.email).length;
+        const pendingDrafts = state.drafts.filter((draft) => draft.status === "pending_review").length;
+        const sent = state.drafts.filter((draft) => draft.status === "sent_recorded").length;
+        const replied = state.replies.filter((reply) => !reply.archived_at).length;
+        const topTags = [...state.kols.reduce((map, kol) => {
+          (kol.tags || []).forEach((tag) => map.set(tag, (map.get(tag) || 0) + 1));
+          return map;
+        }, new Map()).entries()]
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([tag, count]) => `${tag}:${count}`)
+          .join(", ") || "none";
+        return `@KOL summary: ${state.kols.length} leads, ${reachable} reachable emails, ${pendingDrafts} drafts pending review, ${sent} sent records, ${replied} active replies, ${state.gmailAccounts.length} configured Gmail sender slots. Top tags: ${topTags}.`;
       }
 
       function appendNativeMessage(role, message) {
@@ -1905,15 +1917,21 @@
       function runNativeCommand(raw) {
         const text = String(raw || "").trim();
         if (!text) {
-          appendNativeMessage("harness", "No task received. Try opening the plugin dock or inspecting the model settings.");
+          appendNativeMessage("harness", "No task received. Type @KOL to pull a plugin summary, or ask to open the KOL plugin page.");
           return;
         }
         appendNativeMessage("user", text);
         const normalized = text.toLowerCase();
-        if (/plugin|kol|lead|gmail|draft|插件|线索|草稿|邮件/.test(normalized)) {
+        if (/@kol/.test(normalized)) {
+          const summary = kolPluginSummary();
+          harnessLog("tool", "kol_workbench_summary", "Injected KOL plugin summary into the native Harness session.");
+          appendNativeMessage("kol-workbench-tools", summary);
+          return;
+        }
+        if (/open|switch|plugin|kol|lead|gmail|draft|插件|线索|草稿|邮件/.test(normalized)) {
           setKolPluginOpen(true);
-          harnessLog("planner", "Plugin opened from native shell", text);
-          appendNativeMessage("harness", "Opened the KOL Workbench plugin dock. Plugin actions still run through local tools and approval gates.");
+          harnessLog("planner", "Plugin page opened from native shell", text);
+          appendNativeMessage("harness", "Opened the KOL Workbench plugin page. Plugin actions still run through local tools and approval gates.");
           return;
         }
         if (/model|settings|provider|模型|设置/.test(normalized)) {
@@ -2495,22 +2513,20 @@
       }
 
       function handleNav(target) {
-        setNavActive(target);
         if (target === "harness") {
-          focusPanel("#harness-native");
+          showWorkbenchView("harness", "#harness-native", "harness");
           return;
         }
         if (target === "sessions") {
-          focusPanel("#native-sessions");
+          showWorkbenchView("harness", "#native-sessions", "sessions");
           return;
         }
         if (target === "plugins") {
-          setKolPluginOpen(true);
-          focusPanel("#kol-plugin-module");
+          showWorkbenchView("kol", "#kol-plugin-module", "plugins");
           return;
         }
         if (target === "models") {
-          focusPanel("#native-models");
+          showWorkbenchView("harness", "#native-models", "models");
           return;
         }
       }
@@ -2543,9 +2559,15 @@
           const prompt = event.target.dataset.harnessPrompt;
           if (prompt) runHarnessCommand(prompt);
         });
+        let nativeSessionNumber = 1;
         $("#new-session").addEventListener("click", () => {
-          appendNativeMessage("harness", "Started a new local Harness session placeholder. No plugin task is running yet.");
-          harnessLog("planner", "native_session.created", "A new local session placeholder was created in the Harness shell.");
+          nativeSessionNumber += 1;
+          $("#native-transcript").innerHTML = `
+            <div class="native-message"><b>system</b><span>Started local Harness session #${nativeSessionNumber}. Plugin data remains local until a tool is explicitly used.</span></div>
+            <div class="native-message"><b>harness</b><span>Type @KOL to insert the current KOL Workbench plugin summary, or open the plugin page from the Plugins navigation item.</span></div>
+          `;
+          harnessLog("planner", "native_session.created", `Local Harness session #${nativeSessionNumber} was created.`);
+          showWorkbenchView("harness", "#native-session");
         });
         $("#open-plugin-dock").addEventListener("click", () => setKolPluginOpen(true));
         $("#native-open-plugin").addEventListener("click", () => setKolPluginOpen(true));
@@ -2555,16 +2577,15 @@
           input.value = "";
         });
         $("#native-command").addEventListener("keydown", (event) => {
-          if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          if (event.key === "Enter") {
             event.preventDefault();
             $("#native-run").click();
           }
         });
         $("#toggle-kol-plugin").addEventListener("click", (event) => {
           event.stopPropagation();
-          setKolPluginOpen(!$("#kol-plugin-module").classList.contains("is-open"));
+          showWorkbenchView("harness", "#native-session");
         });
-        $("#kol-plugin-module .plugin-frame-head").addEventListener("click", () => setKolPluginOpen(true));
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {
           const accountId = event.target.dataset.deleteGmailAccount;

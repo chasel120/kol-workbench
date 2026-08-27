@@ -417,3 +417,12 @@ MVP 暂不完成：
 - KOL Workbench should appear as a compact docked plugin bar until clicked.
 - When expanded, the KOL plugin dock may show its own progress, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Agent Harness panel.
 - Header-level import/reply shortcuts should remain inside the KOL plugin dock because they are plugin actions.
+
+# 2026-08-27 Page-Based KOL Plugin UI Update
+
+- The docked plugin bar has been replaced by a page-based plugin module.
+- The default page remains the native Harness workspace with Workspaces, Sessions, and Runtime cards.
+- The Plugins navigation item opens the KOL Workbench plugin page as a full workspace module.
+- KOL plugin actions stay inside that page: Import Data, Log Reply, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console.
+- The native Harness session can mention `@KOL` to inject a concise plugin summary into the current local session.
+- The `@KOL` mention should not navigate automatically unless the user asks to open or switch to the plugin page.

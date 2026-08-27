@@ -277,3 +277,12 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: moved the KOL progress strip and all KOL business panels into a bottom-right docked plugin window.
 - Completed: the KOL plugin window is collapsed by default and only expands when the user clicks the plugin bar, Plugins entry, or Open KOL Plugin action.
 - Safety: no new Gmail automation or cloud sync was introduced.
+
+# 2026-08-27 KOL Plugin Page And Session Mention
+
+- Completed: replaced the bottom-right KOL plugin dock with a page-based plugin module.
+- Completed: Plugins navigation and the top Plugins action now switch to the KOL Workbench plugin page.
+- Completed: Back to Session returns from the KOL plugin page to the native Harness session.
+- Completed: New Session resets the native Harness transcript and keeps the session local.
+- Completed: the native Harness command input now runs on Enter and supports @KOL summary injection.
+- Safety: @KOL summary uses local in-memory/workbench state only; no Gmail send, external account access, or Supabase upload was added.

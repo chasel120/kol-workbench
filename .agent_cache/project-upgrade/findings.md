@@ -203,3 +203,10 @@
 - KOL-specific features should not appear in the primary sidebar or header.
 - A docked plugin window lets KOL remain available while preserving the Harness host as the main product surface.
 - The KOL progress strip is also KOL-specific and belongs inside the plugin window, not in the host workspace.
+
+# 2026-08-27 KOL Plugin Page And Session Mention Findings
+
+- The user rejected the bottom-right dock placement; the KOL plugin should be a separate page/module opened from Plugins, not a floating window.
+- Native Harness sessions need immediate visible utility: New Session should reset the transcript, Enter should run the prompt, and tool responses should appear in the session.
+- @KOL mention is the lightest way to let the host session reference plugin state without making KOL a first-level product area.
+- @KOL summaries must stay local runtime/session data and must not upload raw prompts, generated drafts, raw replies, browser paths, or secrets to Supabase.

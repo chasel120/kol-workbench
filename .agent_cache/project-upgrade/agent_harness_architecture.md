@@ -505,3 +505,12 @@ Agent 入口应嵌入业务对象：
 - Plugin actions remain registered local tools and should be invoked only after the user opens the plugin or asks the native shell to use it.
 - The native shell can capture local session messages without starting plugin work automatically.
 - Future plugin registry work should make each plugin independently dockable and expandable.
+
+# 2026-08-27 Page-Based Plugin And @Mention Architecture
+
+- KOL Workbench is no longer docked; it is a page-based plugin module inside the Harness host workspace.
+- The Harness host owns session continuity, model/tool/runtime visibility, and plugin navigation.
+- The KOL plugin owns KOL business objects and actions, but it can expose a local summary tool to the current Harness session.
+- `@KOL` in the native session is treated as a lightweight tool mention that reads local plugin state and appends a summary message.
+- `@KOL` must not upload session text to Supabase, must not call Gmail, and must not bypass ApprovalGate.
+- Future real Harness integration should implement this as a registered plugin tool, such as `kol_workbench_summary`, instead of hard-coded keyword routing.

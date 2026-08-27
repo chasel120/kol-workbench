@@ -208,3 +208,11 @@
 - Completed: convert KOL Workbench into a collapsed bottom-right plugin dock.
 - Completed: keep KOL business actions available only after opening the plugin dock.
 - Next: implement a true plugin registry if the user adds additional plugins beyond KOL Workbench.
+
+# 2026-08-27 KOL Plugin Page And Session Mention Plan Update
+
+- Completed: replace the bottom-right KOL plugin dock with a separate page-based plugin module under the Plugins navigation item.
+- Completed: make the native Harness session input usable with Enter-to-run and local session reset through New Session.
+- Completed: add @KOL mention handling in the native Harness session so the current KOL plugin summary can be injected without opening the plugin page.
+- Completed: keep KOL import, reply logging, lead pool, Gmail, templates, Supabase boundary, and plugin Harness console inside the plugin module.
+- Next: persist native Harness sessions in local SQLite if the user wants session history beyond the current browser session.

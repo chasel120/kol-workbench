@@ -261,3 +261,14 @@ Gmail 相关开发必须谨慎：
 - `#kol-plugin-module` is now a fixed bottom-right dock and is collapsed by default.
 - `setKolPluginOpen()` controls the KOL plugin dock; `runNativeCommand()` opens the plugin when the native command mentions plugin/KOL/Gmail/draft/lead concepts.
 - KOL import, reply logging, lead pool, Gmail queue, template library, Supabase boundary, and KOL Harness console remain inside the docked plugin window.
+
+# 2026-08-27 KOL Plugin Page And Session Mention Handoff
+
+- The previous bottom-right dock model has been superseded by a page-based plugin model.
+- `#harness-native` and `#kol-plugin-module` are now mutually exclusive `.module-page` views inside the main content area.
+- `showWorkbenchView(view, focusSelector, activeNav)` owns view switching and sidebar highlight state.
+- `setKolPluginOpen(true)` now opens the KOL plugin page; `setKolPluginOpen(false)` returns to the Harness workspace.
+- `#toggle-kol-plugin` is now a `Back to Session` action, not an expand/collapse toggle.
+- `runNativeCommand()` supports `@KOL` and appends a local KOL plugin summary to `#native-transcript`.
+- `New Session` clears the native transcript for a new local placeholder session; persistence is not implemented yet.
+- KOL import, reply logging, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console remain inside the KOL plugin page.
