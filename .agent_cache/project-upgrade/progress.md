@@ -293,3 +293,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: kept explicit settings/configuration commands routed to the Settings dialog.
 - Completed: added a shared dialog opener for Settings, Import, Generate, and Template dialogs.
 - Validation: frontend script parse passed and Python compile passed.
+
+# 2026-08-27 Native Session Configured Model Call
+
+- Completed: added a native Harness chat route in the local Agent Runtime.
+- Completed: changed the main Harness session composer so ordinary prompts call the configured model instead of returning a hard-coded local status answer.
+- Completed: `@KOL` alone still inserts the plugin summary; `@KOL` plus a question passes that summary to the configured model as local context.
+- Safety: native session messages and plugin summaries remain local runtime/browser-session data and are not synced to Supabase.
+- Validation: Python compile passed, frontend script parse passed, local mocked native-chat smoke test passed, and `git diff --check` returned only line-ending warnings.

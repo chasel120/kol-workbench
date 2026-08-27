@@ -296,6 +296,19 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 )
                 return
+            if path == "/api/harness/chat":
+                self.send_json(
+                    {
+                        "ok": True,
+                        **harness.answer_native_session(
+                            body.get("message", ""),
+                            body.get("language", "zh"),
+                            body.get("kolSummary", ""),
+                            body.get("history") or [],
+                        ),
+                    }
+                )
+                return
             if path == "/api/settings/model":
                 self.send_json(
                     {

@@ -673,3 +673,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Model-status answers in the native session expose only provider name, base URL, model name, and whether a key exists.
 - API key values are never rendered in the transcript and remain in the existing local encrypted storage path.
 - Settings-dialog open events and model-status questions are local session UI events and are not Supabase business records.
+
+# 2026-08-27 Native Session Model Call Data Boundary
+
+- Native Harness prompts, recent chat context, model request messages, and model answers remain local runtime/session data.
+- `/api/harness/chat` must not write prompts or answers to Supabase.
+- The route may read allowed aggregate plugin context such as KOL counts and tag summaries, but must not send raw draft bodies, raw replies, browser paths, Gmail compose URLs, passwords, cookies, OAuth tokens, 2FA codes, or API key values to Supabase.
+- The frontend sends only short in-memory history to the local Agent Runtime for the current request.

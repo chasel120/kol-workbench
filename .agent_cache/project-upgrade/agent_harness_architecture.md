@@ -521,3 +521,11 @@ Agent 入口应嵌入业务对象：
 - Model-status answers are read-only summaries from local `state.modelConfig`.
 - Settings commands remain UI navigation actions and do not execute model calls.
 - This remains a keyword-router MVP; future work should replace it with structured `TaskRunner` intents and typed tool events.
+
+# 2026-08-27 Native Session Model Call Architecture
+
+- The native Harness session now has a model-backed lane: `desktop_shell/index.html` -> `POST /api/harness/chat` -> `harness.answer_native_session()` -> `call_model()`.
+- The ModelRouter still reads provider, Base URL, model name, and encrypted API key from local settings.
+- Explicit settings/plugin-navigation intents remain local UI actions and do not need a model call.
+- `@KOL` is treated as a lightweight plugin-context tool; the summary is bounded and passed to the model only for the current request.
+- Future TaskRunner work should turn this route into a typed task/session event stream, but the MVP keeps it synchronous and local.

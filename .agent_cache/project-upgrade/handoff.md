@@ -276,7 +276,15 @@ Gmail 相关开发必须谨慎：
 # 2026-08-27 Native Session Model Intent Handoff
 
 - `runNativeCommand()` now distinguishes model-status questions from model-configuration commands.
-- Questions like "你是什么模型", "当前模型", "what model", and "which model" append a `model-router` answer using `currentModelSummary()`.
+- Superseded: questions like "你是什么模型", "当前模型", "what model", and "which model" no longer use the local-only `currentModelSummary()` shortcut; see the model-call handoff below.
 - Settings/configuration commands still call `openDialog("settings-dialog")`.
 - `openDialog(id)` is the shared helper for modal opening and should be reused for future dialogs.
 - The top Plugins action is now `#open-plugin-page`; avoid reintroducing `dock` naming.
+
+# 2026-08-27 Native Session Model Call Handoff
+
+- `POST /api/harness/chat` now calls `harness.answer_native_session()` and uses the locally saved ModelRouter config.
+- `desktop_shell/index.html` now routes ordinary native session prompts through `askNativeModel()` instead of `currentModelSummary()`.
+- `@KOL` alone inserts a summary in the transcript; `@KOL` plus a question passes the summary to `/api/harness/chat`.
+- `state.nativeMessages` stores only short in-memory context for the current browser session; it is not persisted or synced.
+- Restart `start_kol_workbench.bat` after pulling this change so the Python route is available.

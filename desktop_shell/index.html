@@ -256,7 +256,7 @@
       .native-transcript { padding: 14px; overflow: auto; display: grid; align-content: start; gap: 10px; }
       .native-message { border: 1px solid rgba(148,163,184,.2); border-radius: 8px; padding: 10px; background: rgba(15,23,42,.65); }
       .native-message b { display: block; color: #e2e8f0; font-size: 12px; }
-      .native-message span { display: block; margin-top: 5px; color: #93a4bd; font-size: 12px; line-height: 1.5; }
+      .native-message span { display: block; margin-top: 5px; color: #93a4bd; font-size: 12px; line-height: 1.5; white-space: pre-wrap; }
       .native-composer { padding: 12px; border-top: 1px solid rgba(148,163,184,.2); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; background: rgba(15,23,42,.8); }
       .native-composer input { border-color: rgba(148,163,184,.28); color: #e5edf8; background: rgba(30,41,59,.76); }
       .pipeline {
@@ -1088,7 +1088,7 @@
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => Array.from(document.querySelectorAll(selector));
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
-      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10, panelLanguage: "zh", harnessEvents: [] };
+      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10, panelLanguage: "zh", harnessEvents: [], nativeMessages: [] };
       const settingsKey = "kolWorkbenchSettings";
       const draftLanguages = [
         ["en", "English"],
@@ -1918,14 +1918,66 @@
         return `当前 Harness Model Router 使用：${modelName}。Provider：${provider}；Base URL：${baseUrl || "未填写"}；API Key：${model.hasApiKey ? "已保存在本地加密存储" : "未保存"}。`;
       }
 
-      function appendNativeMessage(role, message) {
+      function appendNativeMessage(role, message, options = {}) {
         const transcript = $("#native-transcript");
-        if (!transcript) return;
-        transcript.insertAdjacentHTML("beforeend", `<div class="native-message"><b>${esc(role)}</b><span>${esc(message)}</span></div>`);
+        if (!transcript) return null;
+        const node = document.createElement("div");
+        node.className = `native-message ${options.className || ""}`.trim();
+        node.innerHTML = `<b>${esc(role)}</b><span>${esc(message)}</span>`;
+        transcript.appendChild(node);
         transcript.scrollTop = transcript.scrollHeight;
+        if (!options.transient) {
+          state.nativeMessages.push({ role, content: String(message ?? "") });
+          state.nativeMessages = state.nativeMessages.slice(-24);
+        }
+        return node;
       }
 
-      function runNativeCommand(raw) {
+      function updateNativeMessage(node, role, message) {
+        if (!node) {
+          appendNativeMessage(role, message);
+          return;
+        }
+        node.innerHTML = `<b>${esc(role)}</b><span>${esc(message)}</span>`;
+        state.nativeMessages.push({ role, content: String(message ?? "") });
+        state.nativeMessages = state.nativeMessages.slice(-24);
+        const transcript = $("#native-transcript");
+        if (transcript) transcript.scrollTop = transcript.scrollHeight;
+      }
+
+      async function askNativeModel(text, options = {}) {
+        const input = $("#native-command");
+        const button = $("#native-run");
+        const previousDisabled = button.disabled;
+        button.disabled = true;
+        input.disabled = true;
+        button.textContent = "Running";
+        const loading = appendNativeMessage("model-router", "Calling the configured model...", { transient: true });
+        try {
+          const result = await api("/api/harness/chat", {
+            method: "POST",
+            body: JSON.stringify({
+              message: text,
+              language: state.panelLanguage || "zh",
+              kolSummary: options.kolSummary || "",
+              history: state.nativeMessages.slice(-9, -1)
+            })
+          });
+          const modelLabel = result.model || result.provider || "configured model";
+          updateNativeMessage(loading, modelLabel, result.answer || "The configured model returned no visible answer.");
+          harnessLog("result", "native_session.model_response", `Answered with ${modelLabel}.`);
+        } catch (err) {
+          updateNativeMessage(loading, "harness", `Model call failed: ${err.message}`);
+          harnessLog("tool", "native_session.model_failed", err.message);
+        } finally {
+          button.disabled = previousDisabled;
+          input.disabled = false;
+          button.textContent = "Run";
+          input.focus();
+        }
+      }
+
+      async function runNativeCommand(raw) {
         const text = String(raw || "").trim();
         if (!text) {
           appendNativeMessage("harness", "No task received. Type @KOL to pull a plugin summary, or ask to open the KOL plugin page.");
@@ -1933,30 +1985,32 @@
         }
         appendNativeMessage("user", text);
         const normalized = text.toLowerCase();
-        if (/@kol/.test(normalized)) {
+        if (/@kol/.test(normalized) && !text.replace(/@kol/gi, "").trim()) {
           const summary = kolPluginSummary();
           harnessLog("tool", "kol_workbench_summary", "Injected KOL plugin summary into the native Harness session.");
           appendNativeMessage("kol-workbench-tools", summary);
           return;
         }
-        if (/open|switch|plugin|kol|lead|gmail|draft|插件|线索|草稿|邮件/.test(normalized)) {
+        if (/@kol/.test(normalized)) {
+          const summary = kolPluginSummary();
+          harnessLog("tool", "kol_workbench_summary", "Passed KOL plugin summary to the configured model.");
+          await askNativeModel(text, { kolSummary: summary });
+          return;
+        }
+        if (/(open|switch|show|go to|打开|切换|进入|展开).*(plugin|kol|lead|gmail|draft|插件|线索|草稿|邮件)/.test(normalized) || /(kol|gmail|draft|lead).*(page|plugin|页面|插件)/.test(normalized)) {
           setKolPluginOpen(true);
           harnessLog("planner", "Plugin page opened from native shell", text);
           appendNativeMessage("harness", "Opened the KOL Workbench plugin page. Plugin actions still run through local tools and approval gates.");
           return;
         }
-        if (/what.*model|which.*model|current.*model|model\\?|你是什么模型|当前模型|什么模型|模型是什么/.test(normalized)) {
-          appendNativeMessage("model-router", currentModelSummary());
-          return;
-        }
-        if (/settings|provider|configure|config|open settings|model settings|设置|配置|打开设置|配置模型/.test(normalized)) {
+        if (/(open|show|打开|进入).*(settings|setting|设置)/.test(normalized) || /(configure|config|配置).*(model|provider|api key|settings|模型|设置)/.test(normalized) || /^(settings|设置)$/.test(normalized)) {
           const opened = openDialog("settings-dialog");
           appendNativeMessage("harness", "Opened Settings for model routing and local Gmail placeholders.");
           if (!opened) appendNativeMessage("harness", "Settings dialog was not found in the current page.");
           return;
         }
         harnessLog("planner", "Native shell task", text);
-        appendNativeMessage("harness", "Task captured in the native Harness shell. No plugin action was started.");
+        await askNativeModel(text);
       }
 
       function renderTemplates() {
@@ -2585,6 +2639,7 @@
         let nativeSessionNumber = 1;
         $("#new-session").addEventListener("click", () => {
           nativeSessionNumber += 1;
+          state.nativeMessages = [];
           $("#native-transcript").innerHTML = `
             <div class="native-message"><b>system</b><span>Started local Harness session #${nativeSessionNumber}. Plugin data remains local until a tool is explicitly used.</span></div>
             <div class="native-message"><b>harness</b><span>Type @KOL to insert the current KOL Workbench plugin summary, or open the plugin page from the Plugins navigation item.</span></div>
@@ -2594,10 +2649,12 @@
         });
         $("#open-plugin-page").addEventListener("click", () => setKolPluginOpen(true));
         $("#native-open-plugin").addEventListener("click", () => setKolPluginOpen(true));
-        $("#native-run").addEventListener("click", () => {
+        $("#native-run").addEventListener("click", async () => {
+          if ($("#native-run").disabled) return;
           const input = $("#native-command");
-          runNativeCommand(input.value);
+          const command = input.value;
           input.value = "";
+          await runNativeCommand(command);
         });
         $("#native-command").addEventListener("keydown", (event) => {
           if (event.key === "Enter") {

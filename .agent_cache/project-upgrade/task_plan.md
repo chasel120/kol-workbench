@@ -222,3 +222,10 @@
 - Completed: model-status prompts now answer with the current ModelRouter configuration.
 - Completed: explicit settings/configuration prompts still open Settings.
 - Next: replace keyword intent routing with structured Harness intents when the local TaskRunner is expanded.
+
+# 2026-08-27 Native Session Model Call Plan Update
+
+- Completed: native Harness session prompts now call the configured model through the local Agent Runtime.
+- Completed: added a local-only `/api/harness/chat` route for general Harness answers.
+- Completed: `@KOL` can still inject a plugin summary; when combined with a question, that summary is passed as model context.
+- Next: add persisted local SQLite session history only if the user wants native Harness sessions to survive browser refreshes.

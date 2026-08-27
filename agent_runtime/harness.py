@@ -459,6 +459,67 @@ def call_model(messages: list[dict[str, str]], temperature: float = 0.4) -> str:
     raise ValueError("Model response did not contain generated text.")
 
 
+def answer_native_session(message: str, language: str = "zh", kol_summary: str = "", history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    text = str(message or "").strip()
+    if not text:
+        raise ValueError("Message is required.")
+
+    config = get_model_config(include_secret=False)
+    safe_config = {
+        "provider": config.get("provider") or "openai",
+        "baseUrl": config.get("baseUrl") or "",
+        "modelName": config.get("modelName") or "",
+        "hasApiKey": bool(config.get("hasApiKey")),
+    }
+
+    model_messages: list[dict[str, str]] = [
+        {
+            "role": "system",
+            "content": (
+                "You are the native Harness assistant inside a local desktop KOL Workbench shell. "
+                "Answer the operator directly using the configured model. "
+                "The KOL Workbench is an installed plugin whose business data stays local unless an approved business sync runs. "
+                "Do not claim to send Gmail automatically, read Gmail passwords, read browser cookies, or bypass human approval. "
+                "If the user asks for KOL plugin context, use only the provided summary and ask them to open the plugin for detailed records. "
+                "Prefer the user's input language. If the language is unclear, use the requested target language. "
+                "Keep answers concise and practical."
+            ),
+        },
+        {
+            "role": "user",
+            "content": json.dumps(
+                {
+                    "target_language": language_name(language),
+                    "model_router": safe_config,
+                    "kol_plugin_summary": str(kol_summary or "")[:2000],
+                },
+                ensure_ascii=False,
+            ),
+        },
+    ]
+
+    if isinstance(history, list):
+        for item in history[-8:]:
+            if not isinstance(item, dict):
+                continue
+            content = str(item.get("content") or item.get("message") or "").strip()
+            if not content:
+                continue
+            role = "user" if str(item.get("role") or "").lower() == "user" else "assistant"
+            model_messages.append({"role": role, "content": content[:1500]})
+
+    model_messages.append({"role": "user", "content": text})
+    answer = call_model(model_messages, temperature=0.35).strip()
+    if not answer:
+        raise ValueError("Model returned an empty answer.")
+    return {
+        "answer": answer,
+        "model": safe_config["modelName"],
+        "provider": safe_config["provider"],
+        "hasApiKey": safe_config["hasApiKey"],
+    }
+
+
 def generate_email_copy_with_model(kol: dict[str, Any], brief: str = "", language: str = "en", template: dict[str, Any] | None = None, scenario: str = "first_touch", reply_text: str = "") -> tuple[str, str]:
     rendered_template = ""
     if template:

@@ -432,3 +432,11 @@ MVP 暂不完成：
 - The native Harness session should answer model-status questions in the transcript instead of opening Settings.
 - Explicit configuration wording should open the Settings dialog.
 - Modal dialogs should be opened through the shared helper so future dialog behavior remains consistent.
+
+# 2026-08-27 Native Session Chat UI Update
+
+- The native Harness session composer should behave like a real model-backed chat surface.
+- Ordinary prompts call the configured model through the local Agent Runtime and render the model answer in the transcript.
+- Explicit open/switch commands may still navigate to the KOL plugin page, and explicit settings/configuration commands may still open Settings.
+- `@KOL` alone inserts a local plugin summary; `@KOL` plus a user question uses that summary as local model context.
+- Multiline model answers should preserve line breaks inside transcript cards.

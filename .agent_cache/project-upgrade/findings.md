@@ -217,3 +217,10 @@
 - Model identity/status questions should answer from the current local ModelRouter configuration.
 - Only explicit configuration commands such as "打开设置" or "配置模型" should open the Settings dialog.
 - Dialog opening should go through a shared helper so repeated clicks or missing elements fail visibly instead of looking like a dead interaction.
+
+# 2026-08-27 Native Session Model Call Findings
+
+- The previous direct model-status reply still made the native session feel like a fixed settings inspector instead of a real Harness chat.
+- General native session prompts should call the saved ModelRouter configuration through the local Agent Runtime.
+- Model chat history is currently held only in browser memory and sent to the local runtime for the current request; it is not synced to Supabase.
+- `@KOL` context must remain a concise local summary and must not expose raw draft bodies, raw reply text, browser paths, compose URLs, or secrets.
