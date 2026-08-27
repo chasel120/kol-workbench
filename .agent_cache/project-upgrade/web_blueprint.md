@@ -387,3 +387,11 @@ MVP 暂不完成：
 
 - The Harness plugin is not a new UI surface; it exposes the existing local desktop Web runtime to external Harness agents.
 - Product behavior should still be owned by the KOL Workbench UI and local Agent API, while Harness tools orchestrate the same approved actions.
+
+# 2026-08-27 Harness Console UI Update
+
+- The desktop shell now includes a Harness Console surface in the right-side workspace.
+- Console layout should resemble an agent harness: quick tool chips, command input, local runtime status, and chronological `planner/tool/result` trace cards.
+- Console commands should route users into existing workflow panels/dialogs rather than bypassing review gates.
+- The KOL lead pool and Gmail queue remain the primary operating surfaces; the console is an orchestration layer for visibility and task routing.
+- The console trace should be visually compact, scrollable, and local-only.

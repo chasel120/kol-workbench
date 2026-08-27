@@ -474,3 +474,11 @@ Agent 入口应嵌入业务对象：
 - The adapter registers model-callable tools but delegates all business mutations to the local KOL Workbench Agent API.
 - This keeps KOL Workbench as the system of record and avoids duplicating SQLite access logic in Harness.
 - Harness agents may orchestrate lead creation, draft generation, compose opening, and sent-record updates through approved local tools.
+
+# 2026-08-27 Harness Console Architecture
+
+- The desktop shell now has a first-party Harness Console UI that mirrors the same architectural idea as the external Harness plugin.
+- Console trace events are in-memory UI events with three current kinds: `planner`, `tool`, and `result`.
+- The MVP console router is intentionally shallow: it dispatches to existing approved workflows rather than executing hidden mutations.
+- Future TaskRunner/EventLog work should replace keyword routing with structured task events such as `task.created`, `tool.called`, `approval.required`, and `task.completed`.
+- ApprovalGate remains mandatory: Gmail send actions and final outreach status changes must stay human-confirmed.

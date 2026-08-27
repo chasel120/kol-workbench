@@ -229,6 +229,95 @@
       .mini-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; }
       .mini-card h3 { margin: 0 0 6px; font-size: 14px; }
       .mini-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+      .harness-console {
+        padding: 0;
+        overflow: hidden;
+        border-color: #14233d;
+        background: #0b1220;
+        color: #dbeafe;
+      }
+      .harness-head {
+        padding: 12px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid rgba(148,163,184,.22);
+      }
+      .harness-head h3 { color: #f8fafc; }
+      .harness-head p { color: #8ea5c4; }
+      .harness-status {
+        flex: 0 0 auto;
+        border: 1px solid rgba(34,211,238,.28);
+        border-radius: 999px;
+        padding: 4px 8px;
+        color: #a5f3fc;
+        background: rgba(8,145,178,.14);
+        font-size: 11px;
+      }
+      .harness-toolbar {
+        padding: 10px 12px;
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid rgba(148,163,184,.16);
+      }
+      .tool-chip {
+        min-height: 28px;
+        border: 1px solid rgba(148,163,184,.24);
+        border-radius: 999px;
+        padding: 0 9px;
+        color: #c7d2fe;
+        background: rgba(30,41,59,.86);
+        font-size: 12px;
+      }
+      .tool-chip:hover { border-color: rgba(96,165,250,.55); background: rgba(37,99,235,.25); }
+      .harness-trace {
+        max-height: 260px;
+        overflow: auto;
+        padding: 10px 12px;
+        display: grid;
+        gap: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      .harness-trace::-webkit-scrollbar { width: 8px; }
+      .harness-trace::-webkit-scrollbar-thumb { background: rgba(148,163,184,.4); border-radius: 999px; }
+      .trace-item {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid rgba(148,163,184,.18);
+        border-radius: 8px;
+        background: rgba(15,23,42,.72);
+      }
+      .trace-dot {
+        width: 9px;
+        height: 9px;
+        margin-top: 5px;
+        border-radius: 999px;
+        background: #22d3ee;
+        box-shadow: 0 0 0 4px rgba(34,211,238,.12);
+      }
+      .trace-item.tool .trace-dot { background: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,.12); }
+      .trace-item.result .trace-dot { background: #34d399; box-shadow: 0 0 0 4px rgba(52,211,153,.12); }
+      .trace-title { color: #e2e8f0; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+      .trace-detail { margin-top: 3px; color: #93a4bd; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+      .harness-command {
+        padding: 10px 12px 12px;
+        border-top: 1px solid rgba(148,163,184,.16);
+        display: grid;
+        gap: 8px;
+      }
+      .harness-command textarea {
+        min-height: 72px;
+        border-color: rgba(148,163,184,.28);
+        color: #e5edf8;
+        background: rgba(15,23,42,.88);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+      }
+      .harness-command .row-actions { justify-content: space-between; }
       .template-list { display: grid; gap: 8px; max-height: 260px; overflow: auto; }
       .template-item { border: 1px solid var(--line); border-radius: 8px; padding: 9px; background: var(--soft); }
       .template-item b { font-size: 13px; }
@@ -305,6 +394,7 @@
           <button class="active" data-nav="leads"><span class="glyph">L</span><span class="nav-label" data-i18n="navLeads">线索池</span></button>
           <button data-nav="gmail"><span class="glyph">G</span><span class="nav-label" data-i18n="navGmail">Gmail</span></button>
           <button data-nav="templates"><span class="glyph">T</span><span class="nav-label" data-i18n="navTemplates">模板库</span></button>
+          <button data-nav="harness"><span class="glyph">H</span><span class="nav-label">Harness</span></button>
           <button data-nav="supabase"><span class="glyph">S</span><span class="nav-label" data-i18n="navSupabase">Supabase</span></button>
         </nav>
         <div class="sidebar-footer">
@@ -425,6 +515,29 @@
                   <div class="gmail-grid">
                     <div class="queue" id="gmail-list"></div>
                     <aside class="side-stack">
+                      <div class="mini-card harness-console" id="harness-console">
+                        <div class="harness-head">
+                          <div>
+                            <h3>Harness Console</h3>
+                            <p>Model + tools + local approval trace.</p>
+                          </div>
+                          <span class="harness-status" id="harness-status">local runtime</span>
+                        </div>
+                        <div class="harness-toolbar">
+                          <button class="tool-chip" type="button" data-harness-prompt="status">status</button>
+                          <button class="tool-chip" type="button" data-harness-prompt="generate drafts">generate drafts</button>
+                          <button class="tool-chip" type="button" data-harness-prompt="open gmail queue">gmail queue</button>
+                          <button class="tool-chip" type="button" data-harness-prompt="import leads">import leads</button>
+                        </div>
+                        <div class="harness-trace" id="harness-trace"></div>
+                        <div class="harness-command">
+                          <textarea id="harness-input" placeholder="Ask the local KOL agent to inspect leads, prepare Gmail drafts, or route you to a tool."></textarea>
+                          <div class="row-actions">
+                            <span class="trace-detail">Local-only session trace. No raw prompts or mail bodies are uploaded.</span>
+                            <button class="btn primary" id="harness-run" type="button">Run</button>
+                          </div>
+                        </div>
+                      </div>
                       <div class="mini-card" id="template-section">
                         <h3 data-i18n="templateLibrary">回复模板库</h3>
                         <p data-i18n="templateLibraryDesc">支持 {{kol_name}}、{{country}}、{{niche}}、{{platform}}、{{brief}} 等动态字段。</p>
@@ -693,7 +806,7 @@
       const $ = (selector) => document.querySelector(selector);
       const $$ = (selector) => Array.from(document.querySelectorAll(selector));
       const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8766" : "";
-      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10, panelLanguage: "zh" };
+      const state = { kols: [], drafts: [], replies: [], templates: [], gmailAccounts: [], user: null, selected: new Set(), gmailSelected: new Set(), gmailTab: "drafts", gmailPage: 1, gmailPageSize: 10, panelLanguage: "zh", harnessEvents: [] };
       const settingsKey = "kolWorkbenchSettings";
       const draftLanguages = [
         ["en", "English"],
@@ -1174,6 +1287,8 @@
           : "未配置 Supabase。当前业务数据先保存在本地缓存，可离线使用。";
         renderLeads();
         renderGmail();
+        syncHarnessSnapshot(summary.summary);
+        renderHarnessConsole();
         renderTemplates();
         renderTemplateOptions();
         renderReplyOptions();
@@ -1381,6 +1496,94 @@
         }
         $("#gmail-list").innerHTML = html;
         updateGmailPager(items.length);
+      }
+
+      function syncHarnessSnapshot(summary) {
+        const fingerprint = [summary.kols, summary.emails, summary.draftsPending, summary.syncPending, state.gmailAccounts.length].join(":");
+        if (state.harnessSnapshot === fingerprint) return;
+        state.harnessSnapshot = fingerprint;
+        if (!state.harnessEvents.length) {
+          state.harnessEvents = [
+            {
+              kind: "result",
+              title: "kol_workbench_status",
+              detail: `${summary.kols} leads, ${summary.emails} reachable emails, ${summary.draftsPending} drafts pending review, ${state.gmailAccounts.length} Gmail sender slots.`,
+              time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            },
+            {
+              kind: "tool",
+              title: "local_storage_boundary",
+              detail: "Agent sessions, raw prompts, mail bodies, and secrets stay in the local runtime.",
+              time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            }
+          ];
+        }
+      }
+
+      function harnessLog(kind, title, detail) {
+        state.harnessEvents.unshift({
+          kind,
+          title,
+          detail,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        });
+        state.harnessEvents = state.harnessEvents.slice(0, 24);
+        renderHarnessConsole();
+      }
+
+      function renderHarnessConsole() {
+        const trace = $("#harness-trace");
+        if (!trace) return;
+        const events = state.harnessEvents.length ? state.harnessEvents : [{
+          kind: "planner",
+          title: "Harness ready",
+          detail: "Use the command box or quick chips to route tasks through local KOL tools.",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }];
+        $("#harness-status").textContent = API_BASE ? "local runtime" : "same-origin runtime";
+        trace.innerHTML = events.map((event) => `
+          <div class="trace-item ${esc(event.kind)}">
+            <span class="trace-dot"></span>
+            <div>
+              <div class="trace-title">[${esc(event.time)}] ${esc(event.title)}</div>
+              <div class="trace-detail">${esc(event.detail)}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function runHarnessCommand(raw) {
+        const text = String(raw || "").trim();
+        if (!text) {
+          harnessLog("planner", "No task", "Type a goal such as generate drafts, open Gmail queue, status, or import leads.");
+          return;
+        }
+        const normalized = text.toLowerCase();
+        harnessLog("planner", "Task received", text);
+        if (/status|summary|状态|概览|进度/.test(normalized)) {
+          const pending = state.drafts.filter((d) => d.status === "pending_review").length;
+          harnessLog("tool", "kol_workbench_status", `${state.kols.length} leads, ${state.gmailAccounts.length} Gmail sender slots, ${pending} drafts pending human review.`);
+          focusPanel("#harness-console");
+          return;
+        }
+        if (/draft|草稿|触达|生成|邮件/.test(normalized)) {
+          harnessLog("tool", "kol_generate_gmail_drafts", "Opening the human-reviewed draft generation flow. The agent will not send real Gmail automatically.");
+          openGenerateDialog();
+          return;
+        }
+        if (/gmail|queue|队列|已发送|回复/.test(normalized)) {
+          switchGmailTab("drafts");
+          harnessLog("tool", "kol_list_gmail_drafts", "Focused the Gmail queue. Drafts, sent records, replies, and archived items remain separated.");
+          focusPanel("#gmail-panel");
+          return;
+        }
+        if (/import|lead|kol|线索|导入|录入/.test(normalized)) {
+          harnessLog("tool", "kol_create_manual_lead", "Opening import/manual lead entry. Dataset files stay local.");
+          $("#import-dialog").showModal();
+          return;
+        }
+        harnessLog("result", "Planner note", "No direct tool route matched. Keeping you in the Harness Console for review.");
+        focusPanel("#harness-console");
       }
 
       function renderTemplates() {
@@ -1967,6 +2170,10 @@
           focusPanel("#template-section");
           return;
         }
+        if (target === "harness") {
+          focusPanel("#harness-console");
+          return;
+        }
         if (target === "supabase") {
           focusPanel("#supabase-section");
         }
@@ -1985,6 +2192,21 @@
         $("#browse-browser-path").addEventListener("click", () => browseBrowserPath().catch((err) => { setSettingsToast(pickerErrorText(err, "browserPathFailed"), "#gmail-path-toast"); }));
         $("#browse-browser-profile").addEventListener("click", () => browseBrowserProfile().catch((err) => { setSettingsToast(pickerErrorText(err, "browserProfileFailed"), "#gmail-path-toast"); }));
         $("#add-gmail-account").addEventListener("click", () => addGmailAccount().catch((err) => { $("#settings-toast").textContent = uiText("gmailConfigFailed", { message: err.message }); }));
+        $("#harness-run").addEventListener("click", () => {
+          const input = $("#harness-input");
+          runHarnessCommand(input.value);
+          input.value = "";
+        });
+        $("#harness-input").addEventListener("keydown", (event) => {
+          if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+            event.preventDefault();
+            $("#harness-run").click();
+          }
+        });
+        $(".harness-toolbar").addEventListener("click", (event) => {
+          const prompt = event.target.dataset.harnessPrompt;
+          if (prompt) runHarnessCommand(prompt);
+        });
         $("#save-user").addEventListener("click", () => saveUser().catch((err) => { $("#user-toast").textContent = `保存失败：${err.message}`; }));
         $("#gmail-account-list").addEventListener("click", async (event) => {
           const accountId = event.target.dataset.deleteGmailAccount;

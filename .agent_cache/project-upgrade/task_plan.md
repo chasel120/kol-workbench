@@ -179,3 +179,10 @@
 - Completed: extract the main DeepSeek Harness plugin development pattern.
 - Completed: create a bundle-style plugin for importing KOL Workbench tools into Harness.
 - Next: after DeepSeek Harness is installed locally, test `dsh plugin add` against a real profile and adjust patch syntax if the installed version differs.
+
+# 2026-08-27 Harness Console UI Plan Update
+
+- Completed: add a DeepSeek Harness-style console mode to the local desktop shell.
+- Completed: route console actions through existing safe UI flows instead of adding hidden automation paths.
+- Completed: keep console trace state local-only and outside the Supabase sync boundary.
+- Next: replace the current keyword router with real local Harness task events when the TaskRunner/EventLog API is expanded.

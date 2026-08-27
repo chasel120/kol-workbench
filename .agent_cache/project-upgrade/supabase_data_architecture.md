@@ -635,3 +635,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - The Harness plugin is a local API bridge and must not bypass the existing Supabase exclusion rules.
 - Tool outputs can expose local summaries to the Harness session, but generated draft bodies, Gmail compose URLs, browser paths, and secrets remain excluded from Supabase by default.
 - Any future cloud synchronization triggered through Harness must still use the KOL Workbench local Agent sync manager.
+
+# 2026-08-27 Harness Console Data Boundary
+
+- Harness Console trace events are local runtime/session UI state and are not Supabase business facts.
+- Console prompts and command text must not be uploaded to Supabase by default.
+- If future analytics need console usage metrics, only sanitized aggregate counters may be considered after an explicit design review.
+- Generated draft subject/body, raw reply text, browser paths, Gmail compose URLs, and credentials remain excluded from Supabase even when actions are initiated from the console.

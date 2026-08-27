@@ -243,3 +243,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: exposed local tools for status, lead listing, manual lead creation, draft generation, draft listing, Gmail compose launch, and sent-record updates.
 - Safety: plugin calls only the local KOL Workbench Agent API and preserves the no-auto-send Gmail boundary.
 - Validation: `node --check` passed, package manifest smoke test passed, and `git diff --check` returned only line-ending warnings.
+
+# 2026-08-27 Harness Console UI Mode
+
+- Completed: added a DeepSeek Harness-style console surface inside the desktop shell right workspace.
+- Completed: added a left navigation entry for Harness and a dark local trace panel with `planner`, `tool`, and `result` events.
+- Completed: added command routing for status, draft generation, Gmail queue focus, and import/manual lead entry.
+- Safety: console events are local UI/runtime traces only; raw prompts, generated mail bodies, browser paths, and credentials remain local-only and are not synced to Supabase.
+- Validation: frontend script parse passed and Python compile passed.

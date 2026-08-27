@@ -175,3 +175,10 @@
 - Tool plugins should inject `tools` and register model-callable tools through `defineTool`.
 - A bundle package can declare `dsh.bundle.patch` in `package.json`, making it installable into a Harness profile.
 - KOL Workbench should be exposed to Harness through local Agent API tools, not by importing SQLite internals directly.
+
+# 2026-08-27 Harness Console UI Findings
+
+- The existing workspace needed a visible agent-operating surface, not a generic chat box.
+- A Harness-like UI works best as a local command console plus tool trace beside the Gmail workflow, because the main business objects remain KOL leads, drafts, templates, and Supabase boundaries.
+- The console should route to existing approved UI flows instead of silently mutating data; draft generation still opens the human-reviewed generation dialog.
+- Local trace items can improve operator confidence, but they must remain runtime UI state and must not become Supabase sync data.

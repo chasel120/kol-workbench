@@ -228,3 +228,11 @@ Gmail 相关开发必须谨慎：
 - Tools call the local runtime at `config.baseUrl`, `KOL_WORKBENCH_URL`, or `http://127.0.0.1:8766`.
 - Import example: `dsh plugin --profile kol-bd add ./harness_plugins/kol-workbench-plugin`.
 - The plugin exposes Gmail compose launch only; it does not automate sending or read browser/Gmail secrets.
+
+# 2026-08-27 Harness Console UI Handoff
+
+- `desktop_shell/index.html` now contains `#harness-console` inside the Gmail right-side stack.
+- Left navigation includes `data-nav="harness"` and focuses the console without hiding existing panels.
+- `state.harnessEvents` stores in-memory trace events for the current desktop session.
+- `runHarnessCommand()` routes simple commands to existing safe flows: status trace, generate-draft dialog, Gmail queue focus, and import/manual lead dialog.
+- This is a UI/control-mode layer only; it does not add real Gmail sending, credential access, or Supabase upload of prompts/mail bodies.
