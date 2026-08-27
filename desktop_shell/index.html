@@ -132,45 +132,63 @@
       .btn.ghost { background: var(--soft); }
       .btn.danger { color: var(--red); background: #fff7f7; border-color: #ffd4d4; }
       .btn:disabled { cursor: not-allowed; opacity: .52; }
-      .content { min-width: 0; min-height: 0; padding: 14px 18px 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; overflow: hidden; }
+      .content { min-width: 0; min-height: 0; padding: 10px 18px 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; overflow: hidden; }
       .host-panel {
         min-width: 0;
+        position: relative;
         border: 1px solid #1e2b45;
         border-radius: 8px;
-        padding: 14px;
+        padding: 9px 44px 9px 12px;
         display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr);
-        gap: 14px;
+        grid-template-columns: minmax(220px, 1fr) minmax(520px, .9fr);
+        align-items: center;
+        gap: 12px;
         color: #dbeafe;
         background: linear-gradient(135deg, #0b1220 0%, #101a2f 58%, #12263a 100%);
-        box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, .12);
       }
-      .host-copy { min-width: 0; display: grid; gap: 7px; align-content: center; }
-      .host-kicker { color: #67e8f9; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
-      .host-copy h2 { margin: 0; color: #f8fafc; font-size: 18px; }
-      .host-copy p { margin: 0; color: #9fb1cc; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
-      .host-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 2px; }
+      .host-copy { min-width: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; }
+      .host-kicker { color: #67e8f9; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
+      .host-copy h2 { margin: 0; color: #f8fafc; font-size: 15px; }
+      .host-copy p { display: none; }
+      .host-badges { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 0; }
+      .host-toggle {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid rgba(148,163,184,.26);
+        color: #dbeafe;
+        background: rgba(15,23,42,.72);
+        cursor: pointer;
+      }
+      .host-panel.is-condensed { grid-template-columns: minmax(0, 1fr); padding-top: 7px; padding-bottom: 7px; }
+      .host-panel.is-condensed .host-runtime,
+      .host-panel.is-condensed .host-badges,
+      .host-panel.is-condensed .host-kicker { display: none; }
       .host-badge {
         display: inline-flex;
         align-items: center;
-        min-height: 26px;
+        min-height: 22px;
         border: 1px solid rgba(148,163,184,.24);
         border-radius: 999px;
-        padding: 0 9px;
+        padding: 0 8px;
         color: #dbeafe;
         background: rgba(255,255,255,.06);
-        font-size: 12px;
+        font-size: 11px;
       }
-      .host-runtime { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .host-runtime { min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
       .runtime-cell {
         min-width: 0;
         border: 1px solid rgba(148,163,184,.2);
         border-radius: 8px;
-        padding: 10px;
+        padding: 7px 8px;
         background: rgba(15,23,42,.48);
       }
-      .runtime-cell b { display: block; color: #f8fafc; font-size: 12px; }
-      .runtime-cell span { display: block; margin-top: 5px; color: #9fb1cc; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+      .runtime-cell b { display: block; color: #f8fafc; font-size: 11px; }
+      .runtime-cell span { display: block; margin-top: 3px; color: #9fb1cc; font-size: 11px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .module-page[hidden] { display: none !important; }
       .plugin-workspace-frame {
         min-width: 0;
@@ -594,6 +612,7 @@
 
         <section class="content">
           <section class="host-panel" id="harness-host">
+            <button class="host-toggle" id="toggle-host-panel" type="button" aria-label="Toggle host panel">−</button>
             <div class="host-copy">
               <span class="host-kicker">DeepSeek Harness Web UI</span>
               <h2>Agent Workspace</h2>
@@ -2683,6 +2702,11 @@
         $("#toggle-sidebar").addEventListener("click", () => {
           const collapsed = document.querySelector(".app").classList.toggle("sidebar-collapsed");
           $("#toggle-sidebar").textContent = collapsed ? "›" : "‹";
+        });
+        $("#toggle-host-panel").addEventListener("click", () => {
+          const panel = $("#harness-host");
+          const collapsed = panel.classList.toggle("is-condensed");
+          $("#toggle-host-panel").textContent = collapsed ? "+" : "−";
         });
         $("#select-all").addEventListener("click", () => {
           const allSelected = state.kols.length > 0 && state.kols.every((k) => state.selected.has(k.id));

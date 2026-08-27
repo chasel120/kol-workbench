@@ -224,3 +224,10 @@
 - General native session prompts should call the saved ModelRouter configuration through the local Agent Runtime.
 - Model chat history is currently held only in browser memory and sent to the local runtime for the current request; it is not synced to Supabase.
 - `@KOL` context must remain a concise local summary and must not expose raw draft bodies, raw reply text, browser paths, compose URLs, or secrets.
+
+# 2026-08-27 Native Session KOL Detail Findings
+
+- Operators expect the native Harness session to answer questions about specific KOLs when they mention a handle such as `@Dein Produkt Guru`.
+- A summary-only `@KOL` context is not enough for targeted questions such as country, follower count, email, or current lead status.
+- Local SQLite KOL lead facts can be matched safely by handle, email, homepage, category, niche, and `@name` text without opening the plugin page.
+- The top host information panel was visually useful but too tall for daily chat/plugin work, so it should stay compact or become collapsible in future iterations.

@@ -680,3 +680,10 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - `/api/harness/chat` must not write prompts or answers to Supabase.
 - The route may read allowed aggregate plugin context such as KOL counts and tag summaries, but must not send raw draft bodies, raw replies, browser paths, Gmail compose URLs, passwords, cookies, OAuth tokens, 2FA codes, or API key values to Supabase.
 - The frontend sends only short in-memory history to the local Agent Runtime for the current request.
+
+# 2026-08-27 Native Session KOL Detail Data Boundary
+
+- `/api/harness/chat` may read allowed KOL business facts from local SQLite `kol_leads` for the current model request.
+- Allowed matched context fields include handle, email, platform, homepage, country, category, niche, followers, average views, engagement rate, sales, score, priority, status, and tags.
+- Matched context is not written to Supabase by the native session route; Supabase sync remains a separate approved business-data workflow.
+- The matched context path still excludes generated draft bodies, raw replies, browser paths, Gmail compose URLs, Gmail/browser secrets, OAuth tokens, cookies, passwords, 2FA codes, and model API key values.

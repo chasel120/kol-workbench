@@ -301,3 +301,11 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: `@KOL` alone still inserts the plugin summary; `@KOL` plus a question passes that summary to the configured model as local context.
 - Safety: native session messages and plugin summaries remain local runtime/browser-session data and are not synced to Supabase.
 - Validation: Python compile passed, frontend script parse passed, local mocked native-chat smoke test passed, and `git diff --check` returned only line-ending warnings.
+
+# 2026-08-27 Native Session Local KOL Detail Context
+
+- Completed: compacted the top Harness host panel and added a one-click collapsed state so it no longer dominates the workspace.
+- Completed: added local KOL detail matching for native Harness prompts that mention a specific handle, email, homepage, or `@name`.
+- Completed: `/api/harness/chat` now passes matched local KOL fields such as country, followers, category, score, priority, status, and tags into the configured model call.
+- Safety: matched KOL context is read from local SQLite for the current model request only; no Gmail secrets, draft bodies, raw replies, prompts, or compose URLs are uploaded to Supabase.
+- Validation: Python compile passed, frontend script parse passed, and local smoke test confirmed `@Dein Produkt Guru` matches the local KOL record.

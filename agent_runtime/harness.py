@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import urllib.error
 import urllib.parse
@@ -459,6 +460,86 @@ def call_model(messages: list[dict[str, str]], temperature: float = 0.4) -> str:
     raise ValueError("Model response did not contain generated text.")
 
 
+def _lookup_text(value: Any) -> str:
+    return re.sub(r"[\s@_\-·•|/\\:：，。,.!?！？;；'\"（）()【】\[\]{}]+", "", str(value or "").lower())
+
+
+def _kol_match_score(kol: dict[str, Any], message: str, compact_message: str) -> int:
+    handle = str(kol.get("handle") or "").strip()
+    email = str(kol.get("email") or "").strip()
+    homepage = str(kol.get("homepage_url") or "").strip()
+    strong_fields = {handle, email, homepage}
+    fields = [handle, email, homepage, str(kol.get("category") or ""), str(kol.get("commerce_niche") or "")]
+    score = 0
+    for field in fields:
+        compact_field = _lookup_text(field)
+        if compact_field and compact_field in compact_message:
+            score += 12 if field in strong_fields else 4
+    for mention in re.findall(r"@([^,，。!?！？;；\n\r]+)", message):
+        compact_mention = _lookup_text(mention)
+        compact_handle = _lookup_text(handle)
+        if compact_mention and compact_handle:
+            if compact_handle in compact_mention or compact_mention in compact_handle:
+                score += 18
+            else:
+                handle_tokens = [_lookup_text(part) for part in re.split(r"\s+", handle) if _lookup_text(part)]
+                if handle_tokens and all(token in compact_mention for token in handle_tokens):
+                    score += 14
+    return score
+
+
+def matched_kol_context(message: str, limit: int = 5) -> str:
+    compact_message = _lookup_text(message)
+    if not compact_message:
+        return ""
+    with connect() as conn:
+        rows = rows_to_dicts(
+            conn.execute(
+                """
+                SELECT id, handle, email, platform, homepage_url, country, category, commerce_niche,
+                       followers, avg_views, engagement_rate, sales_28d, score, priority, status, tags
+                FROM kol_leads
+                ORDER BY score DESC, updated_at DESC
+                LIMIT 1000
+                """
+            ).fetchall()
+        )
+    matches: list[tuple[int, dict[str, Any]]] = []
+    for row in rows:
+        score = _kol_match_score(row, message, compact_message)
+        if score > 0:
+            matches.append((score, row))
+    if not matches:
+        return ""
+    matches.sort(key=lambda item: (item[0], float(item[1].get("score") or 0)), reverse=True)
+    lines = []
+    for _, row in matches[:limit]:
+        lines.append(
+            "- "
+            + json.dumps(
+                {
+                    "name": row.get("handle"),
+                    "email": row.get("email"),
+                    "platform": row.get("platform"),
+                    "homepage": row.get("homepage_url"),
+                    "country": row.get("country"),
+                    "category": row.get("category"),
+                    "niche": row.get("commerce_niche"),
+                    "followers": row.get("followers"),
+                    "avg_views": row.get("avg_views"),
+                    "engagement_rate": row.get("engagement_rate"),
+                    "sales_28d": row.get("sales_28d"),
+                    "score": row.get("score"),
+                    "priority": row.get("priority"),
+                    "status": row.get("status"),
+                    "tags": row.get("tags") or [],
+                },
+                ensure_ascii=False,
+            )
+        )
+    return "Matched KOL lead details from the local KOL Workbench plugin:\n" + "\n".join(lines)
+
+
 def answer_native_session(message: str, language: str = "zh", kol_summary: str = "", history: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     text = str(message or "").strip()
     if not text:
@@ -471,6 +552,8 @@ def answer_native_session(message: str, language: str = "zh", kol_summary: str =
         "modelName": config.get("modelName") or "",
         "hasApiKey": bool(config.get("hasApiKey")),
     }
+    local_kol_context = matched_kol_context(text)
+    combined_kol_context = "\n\n".join(part for part in [str(kol_summary or "").strip(), local_kol_context] if part)
 
     model_messages: list[dict[str, str]] = [
         {
@@ -480,7 +563,8 @@ def answer_native_session(message: str, language: str = "zh", kol_summary: str =
                 "Answer the operator directly using the configured model. "
                 "The KOL Workbench is an installed plugin whose business data stays local unless an approved business sync runs. "
                 "Do not claim to send Gmail automatically, read Gmail passwords, read browser cookies, or bypass human approval. "
-                "If the user asks for KOL plugin context, use only the provided summary and ask them to open the plugin for detailed records. "
+                "If the user asks about KOL plugin data, answer from the provided local summary and matched lead details. "
+                "If no matching KOL detail is provided, say that the local plugin did not find that lead. "
                 "Prefer the user's input language. If the language is unclear, use the requested target language. "
                 "Keep answers concise and practical."
             ),
@@ -490,8 +574,9 @@ def answer_native_session(message: str, language: str = "zh", kol_summary: str =
             "content": json.dumps(
                 {
                     "target_language": language_name(language),
+                    "local_now": now_iso(),
                     "model_router": safe_config,
-                    "kol_plugin_summary": str(kol_summary or "")[:2000],
+                    "kol_plugin_context": combined_kol_context[:6000],
                 },
                 ensure_ascii=False,
             ),

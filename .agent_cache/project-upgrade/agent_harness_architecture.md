@@ -529,3 +529,11 @@ Agent 入口应嵌入业务对象：
 - Explicit settings/plugin-navigation intents remain local UI actions and do not need a model call.
 - `@KOL` is treated as a lightweight plugin-context tool; the summary is bounded and passed to the model only for the current request.
 - Future TaskRunner work should turn this route into a typed task/session event stream, but the MVP keeps it synchronous and local.
+
+# 2026-08-27 Native Session Local KOL Detail Architecture
+
+- The native Harness session can now enrich model calls with local KOL plugin detail without navigating away from the session page.
+- Context flow: user prompt -> `/api/harness/chat` -> `matched_kol_context()` -> local SQLite `kol_leads` read -> bounded context payload -> configured model.
+- Matching is intentionally lightweight and local: handle, email, homepage, category, niche, and `@name` mentions are normalized before scoring.
+- This is still a read-only plugin-context lane. It must not create Gmail actions, mutate lead state, or sync session prompts/answers to Supabase.
+- Future real Harness integration should expose this as a typed tool such as `kol_workbench.match_leads` with explicit result size and field allowlists.

@@ -229,3 +229,11 @@
 - Completed: added a local-only `/api/harness/chat` route for general Harness answers.
 - Completed: `@KOL` can still inject a plugin summary; when combined with a question, that summary is passed as model context.
 - Next: add persisted local SQLite session history only if the user wants native Harness sessions to survive browser refreshes.
+
+# 2026-08-27 Native Session KOL Detail Plan Update
+
+- Completed: shrink the top Harness host panel so the conversation and plugin modules have more usable space.
+- Completed: add a host-panel collapse control for an even smaller one-line state.
+- Completed: add local KOL detail lookup to native Harness chat so named KOL questions can be answered from plugin data.
+- Completed: keep this lookup read-only and local-only, with no Supabase writes and no Gmail side effects.
+- Next: persist native Harness sessions in local SQLite only if the user asks for refresh-safe session history.

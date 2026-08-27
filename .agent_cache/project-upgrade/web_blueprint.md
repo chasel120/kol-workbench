@@ -440,3 +440,10 @@ MVP 暂不完成：
 - Explicit open/switch commands may still navigate to the KOL plugin page, and explicit settings/configuration commands may still open Settings.
 - `@KOL` alone inserts a local plugin summary; `@KOL` plus a user question uses that summary as local model context.
 - Multiline model answers should preserve line breaks inside transcript cards.
+
+# 2026-08-27 Compact Host And KOL-Aware Chat UI Update
+
+- The top Harness host panel should remain compact so the active transcript and plugin workspace receive most of the viewport.
+- Model, tools, memory, and approval status should stay visible as small runtime cells, with longer descriptive copy hidden or collapsed.
+- The native session should support targeted KOL questions in-place, for example asking about a named handle's country, followers, status, or email.
+- When a question references a KOL, the transcript should show the model answer directly; opening the KOL plugin page is optional, not required.

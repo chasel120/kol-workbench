@@ -288,3 +288,11 @@ Gmail 相关开发必须谨慎：
 - `@KOL` alone inserts a summary in the transcript; `@KOL` plus a question passes the summary to `/api/harness/chat`.
 - `state.nativeMessages` stores only short in-memory context for the current browser session; it is not persisted or synced.
 - Restart `start_kol_workbench.bat` after pulling this change so the Python route is available.
+
+# 2026-08-27 Native Session Local KOL Detail Handoff
+
+- `agent_runtime/harness.py` now has `matched_kol_context(message)`, `_lookup_text()`, and `_kol_match_score()` for local KOL lookup.
+- `answer_native_session()` combines the optional frontend `@KOL` summary with matched local `kol_leads` detail before calling the configured model.
+- Targeted prompts such as `@Dein Produkt Guru这个博主是哪个国家有多少粉丝` should now provide enough context for the model to answer from local KOL fields.
+- `desktop_shell/index.html` compacted `#harness-host` via CSS and added `#toggle-host-panel` for a one-line collapsed state while preserving model/tool/memory/approval visibility by default.
+- If the running browser still shows the old large banner or missing KOL detail answers, restart `start_kol_workbench.bat` and hard-refresh the page.
