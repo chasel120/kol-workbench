@@ -667,3 +667,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Native Harness session text, including messages created by `@KOL`, remains local session/runtime data and must not be synced to Supabase.
 - The `@KOL` summary may include aggregate counts and non-sensitive tag summaries from local state, but it must not include raw draft bodies, raw reply text, browser paths, Gmail compose URLs, OAuth tokens, cookies, passwords, 2FA codes, or model API keys.
 - Opening the KOL plugin page does not create Supabase records by itself; only approved business sync actions may write allowed KOL business facts.
+
+# 2026-08-27 Native Session Model Intent Data Boundary
+
+- Model-status answers in the native session expose only provider name, base URL, model name, and whether a key exists.
+- API key values are never rendered in the transcript and remain in the existing local encrypted storage path.
+- Settings-dialog open events and model-status questions are local session UI events and are not Supabase business records.

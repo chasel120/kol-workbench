@@ -514,3 +514,10 @@ Agent 入口应嵌入业务对象：
 - `@KOL` in the native session is treated as a lightweight tool mention that reads local plugin state and appends a summary message.
 - `@KOL` must not upload session text to Supabase, must not call Gmail, and must not bypass ApprovalGate.
 - Future real Harness integration should implement this as a registered plugin tool, such as `kol_workbench_summary`, instead of hard-coded keyword routing.
+
+# 2026-08-27 Native Session Intent Architecture
+
+- The native Harness session now has separate intent lanes for model-status questions and settings/configuration commands.
+- Model-status answers are read-only summaries from local `state.modelConfig`.
+- Settings commands remain UI navigation actions and do not execute model calls.
+- This remains a keyword-router MVP; future work should replace it with structured `TaskRunner` intents and typed tool events.

@@ -426,3 +426,9 @@ MVP 暂不完成：
 - KOL plugin actions stay inside that page: Import Data, Log Reply, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console.
 - The native Harness session can mention `@KOL` to inject a concise plugin summary into the current local session.
 - The `@KOL` mention should not navigate automatically unless the user asks to open or switch to the plugin page.
+
+# 2026-08-27 Native Session Intent UI Update
+
+- The native Harness session should answer model-status questions in the transcript instead of opening Settings.
+- Explicit configuration wording should open the Settings dialog.
+- Modal dialogs should be opened through the shared helper so future dialog behavior remains consistent.

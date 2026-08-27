@@ -216,3 +216,9 @@
 - Completed: add @KOL mention handling in the native Harness session so the current KOL plugin summary can be injected without opening the plugin page.
 - Completed: keep KOL import, reply logging, lead pool, Gmail, templates, Supabase boundary, and plugin Harness console inside the plugin module.
 - Next: persist native Harness sessions in local SQLite if the user wants session history beyond the current browser session.
+
+# 2026-08-27 Native Session Model Intent Plan Update
+
+- Completed: model-status prompts now answer with the current ModelRouter configuration.
+- Completed: explicit settings/configuration prompts still open Settings.
+- Next: replace keyword intent routing with structured Harness intents when the local TaskRunner is expanded.

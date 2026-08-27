@@ -210,3 +210,10 @@
 - Native Harness sessions need immediate visible utility: New Session should reset the transcript, Enter should run the prompt, and tool responses should appear in the session.
 - @KOL mention is the lightest way to let the host session reference plugin state without making KOL a first-level product area.
 - @KOL summaries must stay local runtime/session data and must not upload raw prompts, generated drafts, raw replies, browser paths, or secrets to Supabase.
+
+# 2026-08-27 Native Session Model Intent Findings
+
+- The native session previously treated any prompt containing "model" or "模型" as a request to open Settings, so "你是什么模型" produced the wrong response.
+- Model identity/status questions should answer from the current local ModelRouter configuration.
+- Only explicit configuration commands such as "打开设置" or "配置模型" should open the Settings dialog.
+- Dialog opening should go through a shared helper so repeated clicks or missing elements fail visibly instead of looking like a dead interaction.

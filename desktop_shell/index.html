@@ -588,7 +588,7 @@
           </div>
           <div class="actions">
             <button class="btn" id="new-session" type="button">New Session</button>
-            <button class="btn primary" id="open-plugin-dock" type="button">Plugins</button>
+            <button class="btn primary" id="open-plugin-page" type="button">Plugins</button>
           </div>
         </header>
 
@@ -1871,7 +1871,7 @@
         }
         if (/import|lead|kol|线索|导入|录入/.test(normalized)) {
           harnessLog("tool", "kol_create_manual_lead", "Opening import/manual lead entry. Dataset files stay local.");
-          $("#import-dialog").showModal();
+          openDialog("import-dialog");
           return;
         }
         harnessLog("result", "Planner note", "No direct tool route matched. Keeping you in the Harness Console for review.");
@@ -1907,6 +1907,17 @@
         return `@KOL summary: ${state.kols.length} leads, ${reachable} reachable emails, ${pendingDrafts} drafts pending review, ${sent} sent records, ${replied} active replies, ${state.gmailAccounts.length} configured Gmail sender slots. Top tags: ${topTags}.`;
       }
 
+      function currentModelSummary() {
+        const model = state.modelConfig || {};
+        const modelName = model.modelName || "";
+        const provider = model.provider || "openai";
+        const baseUrl = model.baseUrl || "";
+        if (!modelName) {
+          return "当前还没有配置具体模型。请打开左下角 Settings，在 Model Provider、Base URL、Model Name 和 API Key 中完成配置。";
+        }
+        return `当前 Harness Model Router 使用：${modelName}。Provider：${provider}；Base URL：${baseUrl || "未填写"}；API Key：${model.hasApiKey ? "已保存在本地加密存储" : "未保存"}。`;
+      }
+
       function appendNativeMessage(role, message) {
         const transcript = $("#native-transcript");
         if (!transcript) return;
@@ -1934,9 +1945,14 @@
           appendNativeMessage("harness", "Opened the KOL Workbench plugin page. Plugin actions still run through local tools and approval gates.");
           return;
         }
-        if (/model|settings|provider|模型|设置/.test(normalized)) {
-          $("#settings-dialog").showModal();
+        if (/what.*model|which.*model|current.*model|model\\?|你是什么模型|当前模型|什么模型|模型是什么/.test(normalized)) {
+          appendNativeMessage("model-router", currentModelSummary());
+          return;
+        }
+        if (/settings|provider|configure|config|open settings|model settings|设置|配置|打开设置|配置模型/.test(normalized)) {
+          const opened = openDialog("settings-dialog");
           appendNativeMessage("harness", "Opened Settings for model routing and local Gmail placeholders.");
+          if (!opened) appendNativeMessage("harness", "Settings dialog was not found in the current page.");
           return;
         }
         harnessLog("planner", "Native shell task", text);
@@ -2027,7 +2043,7 @@
         renderTemplateOptions();
         $("#generate-status").textContent = state.gmailAccounts.length ? "待开始。草稿生成后会自动刷新 Gmail 草稿队列和 KOL 状态。" : uiText("noGmailForGenerate");
         $$(".step").forEach((step, index) => step.classList.toggle("active", index === 0));
-        $("#generate-dialog").showModal();
+        openDialog("generate-dialog");
       }
 
       async function importData() {
@@ -2160,7 +2176,7 @@
         $("#tpl-subject").value = tpl.subject || "";
         $("#tpl-body").value = tpl.body || "";
         $("#template-toast").textContent = "正在编辑现有模板，保存后会覆盖该模板。";
-        $("#template-dialog").showModal();
+        openDialog("template-dialog");
       }
 
       async function deleteTemplate(id) {
@@ -2508,6 +2524,13 @@
         pulseElement(element);
       }
 
+      function openDialog(id) {
+        const dialog = document.getElementById(id);
+        if (!dialog) return false;
+        if (!dialog.open) dialog.showModal();
+        return true;
+      }
+
       function setNavActive(target) {
         $$(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.nav === target));
       }
@@ -2532,7 +2555,7 @@
       }
 
       function bind() {
-        $$("[data-open]").forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.open).showModal()));
+        $$("[data-open]").forEach((button) => button.addEventListener("click", () => openDialog(button.dataset.open)));
         $$("[data-close]").forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
         $("#setting-language").addEventListener("change", () => applyPanelLanguage($("#setting-language").value));
         $("#save-settings").addEventListener("click", saveSettingsFromDialog);
@@ -2569,7 +2592,7 @@
           harnessLog("planner", "native_session.created", `Local Harness session #${nativeSessionNumber} was created.`);
           showWorkbenchView("harness", "#native-session");
         });
-        $("#open-plugin-dock").addEventListener("click", () => setKolPluginOpen(true));
+        $("#open-plugin-page").addEventListener("click", () => setKolPluginOpen(true));
         $("#native-open-plugin").addEventListener("click", () => setKolPluginOpen(true));
         $("#native-run").addEventListener("click", () => {
           const input = $("#native-command");
@@ -2673,7 +2696,7 @@
           if (deleteId) deleteTemplate(deleteId).catch((err) => { $("#template-library-toast").textContent = `删除失败：${err.message}`; });
           if (defaultId) setDefaultTemplate(defaultId).catch((err) => { $("#template-library-toast").textContent = `设置默认失败：${err.message}`; });
         });
-        $("#ai-template").addEventListener("click", () => { resetTemplateDialog(); $("#template-dialog").showModal(); fillAiTemplate(); });
+        $("#ai-template").addEventListener("click", () => { resetTemplateDialog(); openDialog("template-dialog"); fillAiTemplate(); });
         $("#fill-ai-template").addEventListener("click", fillAiTemplate);
         $("#save-template").addEventListener("click", saveTemplate);
         $("#import").addEventListener("click", importData);

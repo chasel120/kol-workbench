@@ -272,3 +272,11 @@ Gmail 相关开发必须谨慎：
 - `runNativeCommand()` supports `@KOL` and appends a local KOL plugin summary to `#native-transcript`.
 - `New Session` clears the native transcript for a new local placeholder session; persistence is not implemented yet.
 - KOL import, reply logging, lead pool, Gmail queue, template library, Supabase boundary, and plugin-specific Harness console remain inside the KOL plugin page.
+
+# 2026-08-27 Native Session Model Intent Handoff
+
+- `runNativeCommand()` now distinguishes model-status questions from model-configuration commands.
+- Questions like "你是什么模型", "当前模型", "what model", and "which model" append a `model-router` answer using `currentModelSummary()`.
+- Settings/configuration commands still call `openDialog("settings-dialog")`.
+- `openDialog(id)` is the shared helper for modal opening and should be reused for future dialogs.
+- The top Plugins action is now `#open-plugin-page`; avoid reintroducing `dock` naming.

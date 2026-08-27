@@ -286,3 +286,10 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: New Session resets the native Harness transcript and keeps the session local.
 - Completed: the native Harness command input now runs on Enter and supports @KOL summary injection.
 - Safety: @KOL summary uses local in-memory/workbench state only; no Gmail send, external account access, or Supabase upload was added.
+
+# 2026-08-27 Native Session Model Intent Fix
+
+- Completed: changed native Harness prompts such as "你是什么模型" to answer with the current ModelRouter configuration instead of opening Settings.
+- Completed: kept explicit settings/configuration commands routed to the Settings dialog.
+- Completed: added a shared dialog opener for Settings, Import, Generate, and Template dialogs.
+- Validation: frontend script parse passed and Python compile passed.
