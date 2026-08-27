@@ -202,7 +202,7 @@
       .queue-toolbar strong { color: var(--ink); font-size: 13px; }
       .queue-toolbar .row-actions { justify-content: flex-end; }
       .mail-check { width: 16px; height: 16px; margin-top: 3px; flex: 0 0 auto; accent-color: var(--blue); }
-      .gmail-grid { min-width: 0; min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; overflow: hidden; }
+      .gmail-grid { min-width: 0; min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 430px); gap: 12px; overflow: hidden; }
       .queue { min-width: 0; min-height: 0; overflow: auto; display: grid; grid-auto-rows: max-content; align-content: start; gap: 10px; padding-right: 3px; }
       .draft-card {
         min-height: 96px; border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden;
@@ -235,9 +235,10 @@
         border-color: #14233d;
         background: #0b1220;
         color: #dbeafe;
+        box-shadow: 0 16px 36px rgba(15, 23, 42, .18);
       }
       .harness-head {
-        padding: 12px;
+        padding: 14px;
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
@@ -256,7 +257,7 @@
         font-size: 11px;
       }
       .harness-toolbar {
-        padding: 10px 12px;
+        padding: 10px 14px;
         display: flex;
         gap: 7px;
         flex-wrap: wrap;
@@ -272,10 +273,55 @@
         font-size: 12px;
       }
       .tool-chip:hover { border-color: rgba(96,165,250,.55); background: rgba(37,99,235,.25); }
+      .harness-map {
+        padding: 12px 14px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 8px;
+        align-items: stretch;
+        border-bottom: 1px solid rgba(148,163,184,.16);
+      }
+      .harness-node {
+        min-width: 0;
+        border: 1px solid rgba(148,163,184,.22);
+        border-radius: 8px;
+        padding: 9px;
+        background: rgba(15,23,42,.72);
+      }
+      .harness-node strong { display: block; color: #f8fafc; font-size: 12px; line-height: 1.25; }
+      .harness-node span { display: block; margin-top: 4px; color: #93a4bd; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .harness-arrow { color: #38bdf8; display: grid; place-items: center; font-weight: 900; }
+      .harness-lanes {
+        padding: 0 14px 12px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        border-bottom: 1px solid rgba(148,163,184,.16);
+      }
+      .harness-lane {
+        min-width: 0;
+        border: 1px solid rgba(148,163,184,.18);
+        border-radius: 8px;
+        padding: 9px;
+        background: rgba(30,41,59,.58);
+      }
+      .harness-lane b { display: block; color: #e2e8f0; font-size: 12px; }
+      .harness-lane span { display: block; margin-top: 4px; color: #93a4bd; font-size: 11px; line-height: 1.35; }
+      .harness-lane.warning { border-color: rgba(251,191,36,.35); background: rgba(120,53,15,.2); }
+      .harness-shell-title {
+        padding: 10px 14px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: #cbd5e1;
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
       .harness-trace {
-        max-height: 260px;
+        max-height: 300px;
         overflow: auto;
-        padding: 10px 12px;
+        padding: 10px 14px;
         display: grid;
         gap: 8px;
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -304,7 +350,7 @@
       .trace-title { color: #e2e8f0; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
       .trace-detail { margin-top: 3px; color: #93a4bd; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
       .harness-command {
-        padding: 10px 12px 12px;
+        padding: 10px 14px 14px;
         border-top: 1px solid rgba(148,163,184,.16);
         display: grid;
         gap: 8px;
@@ -518,16 +564,49 @@
                       <div class="mini-card harness-console" id="harness-console">
                         <div class="harness-head">
                           <div>
-                            <h3>Harness Console</h3>
-                            <p>Model + tools + local approval trace.</p>
+                            <h3>Agent Harness</h3>
+                            <p>Model + Harness + Tools, with local memory and approval gates.</p>
                           </div>
                           <span class="harness-status" id="harness-status">local runtime</span>
+                        </div>
+                        <div class="harness-map">
+                          <div class="harness-node">
+                            <strong>Model</strong>
+                            <span id="harness-model">configured LLM</span>
+                          </div>
+                          <div class="harness-arrow">→</div>
+                          <div class="harness-node">
+                            <strong>Harness</strong>
+                            <span>task routing · tools · memory · approval</span>
+                          </div>
+                        </div>
+                        <div class="harness-lanes">
+                          <div class="harness-lane">
+                            <b>Task Runner</b>
+                            <span id="harness-task-count">0 active task events</span>
+                          </div>
+                          <div class="harness-lane">
+                            <b>Tool Registry</b>
+                            <span>leads · drafts · Gmail compose · Supabase sync</span>
+                          </div>
+                          <div class="harness-lane">
+                            <b>Memory Scope</b>
+                            <span id="harness-memory">local session + SQLite runtime</span>
+                          </div>
+                          <div class="harness-lane warning">
+                            <b>Approval Gate</b>
+                            <span id="harness-approval">Gmail send remains human-confirmed</span>
+                          </div>
                         </div>
                         <div class="harness-toolbar">
                           <button class="tool-chip" type="button" data-harness-prompt="status">status</button>
                           <button class="tool-chip" type="button" data-harness-prompt="generate drafts">generate drafts</button>
                           <button class="tool-chip" type="button" data-harness-prompt="open gmail queue">gmail queue</button>
                           <button class="tool-chip" type="button" data-harness-prompt="import leads">import leads</button>
+                        </div>
+                        <div class="harness-shell-title">
+                          <span>event stream</span>
+                          <span>planner / tool / result</span>
                         </div>
                         <div class="harness-trace" id="harness-trace"></div>
                         <div class="harness-command">
@@ -1222,6 +1301,7 @@
 
       function applySettingsState(settings) {
         const model = settings.model || {};
+        state.modelConfig = model;
         state.gmailAccounts = settings.gmailAccounts || [];
         state.user = settings.user || null;
         $("#setting-model-provider").value = model.provider || "openai";
@@ -1541,6 +1621,12 @@
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         }];
         $("#harness-status").textContent = API_BASE ? "local runtime" : "same-origin runtime";
+        const modelName = state.modelConfig?.modelName || "model not configured";
+        $("#harness-model").textContent = modelName;
+        $("#harness-task-count").textContent = `${state.harnessEvents.length} local event${state.harnessEvents.length === 1 ? "" : "s"}`;
+        $("#harness-memory").textContent = `${state.kols.length} leads · ${state.drafts.length} drafts · ${state.replies.length} replies`;
+        const pending = state.drafts.filter((d) => d.status === "pending_review").length;
+        $("#harness-approval").textContent = `${pending} drafts waiting for human review; Gmail send is manual`;
         trace.innerHTML = events.map((event) => `
           <div class="trace-item ${esc(event.kind)}">
             <span class="trace-dot"></span>

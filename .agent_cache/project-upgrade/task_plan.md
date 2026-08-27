@@ -186,3 +186,10 @@
 - Completed: route console actions through existing safe UI flows instead of adding hidden automation paths.
 - Completed: keep console trace state local-only and outside the Supabase sync boundary.
 - Next: replace the current keyword router with real local Harness task events when the TaskRunner/EventLog API is expanded.
+
+# 2026-08-27 Harness Panel UI Plan Update
+
+- Completed: upgrade the console into a fuller Harness-style UI panel.
+- Completed: add explicit Model, Harness, Tool Registry, Memory Scope, and Approval Gate regions.
+- Completed: bind the panel to current local model/settings and workspace counts.
+- Next: add a dedicated Harness workbench mode only if the user wants the Agent panel to become the primary page instead of a right-side operations panel.

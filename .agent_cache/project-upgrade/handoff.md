@@ -236,3 +236,10 @@ Gmail 相关开发必须谨慎：
 - `state.harnessEvents` stores in-memory trace events for the current desktop session.
 - `runHarnessCommand()` routes simple commands to existing safe flows: status trace, generate-draft dialog, Gmail queue focus, and import/manual lead dialog.
 - This is a UI/control-mode layer only; it does not add real Gmail sending, credential access, or Supabase upload of prompts/mail bodies.
+
+# 2026-08-27 Harness Panel UI Handoff
+
+- The Harness UI is now a fuller panel with an architecture strip, operation lanes, quick tool chips, event stream, and command input.
+- The Gmail right-side column was widened from `320px` to `minmax(360px, 430px)` so the panel has enough room.
+- New live bindings in `renderHarnessConsole()` update `#harness-model`, `#harness-task-count`, `#harness-memory`, and `#harness-approval`.
+- Future Harness event work should preserve these panel regions and replace the current in-memory event list with structured local TaskRunner/EventLog data.

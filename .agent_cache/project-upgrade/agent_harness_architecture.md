@@ -482,3 +482,10 @@ Agent 入口应嵌入业务对象：
 - The MVP console router is intentionally shallow: it dispatches to existing approved workflows rather than executing hidden mutations.
 - Future TaskRunner/EventLog work should replace keyword routing with structured task events such as `task.created`, `tool.called`, `approval.required`, and `task.completed`.
 - ApprovalGate remains mandatory: Gmail send actions and final outreach status changes must stay human-confirmed.
+
+# 2026-08-27 Harness Panel Architecture
+
+- The UI now exposes the Harness architecture directly instead of hiding it behind a terminal metaphor.
+- The panel regions map to architecture components: ModelRouter, TaskRunner, ToolRegistry, local memory/runtime state, and ApprovalGate.
+- Current metrics are read from local state only and should later be replaced by structured TaskRunner/EventLog snapshots.
+- The ApprovalGate lane must remain visually present whenever Gmail or outbound copy workflows are visible.

@@ -182,3 +182,10 @@
 - A Harness-like UI works best as a local command console plus tool trace beside the Gmail workflow, because the main business objects remain KOL leads, drafts, templates, and Supabase boundaries.
 - The console should route to existing approved UI flows instead of silently mutating data; draft generation still opens the human-reviewed generation dialog.
 - Local trace items can improve operator confidence, but they must remain runtime UI state and must not become Supabase sync data.
+
+# 2026-08-27 Harness Panel UI Findings
+
+- A narrow terminal-only card does not communicate the Harness concept clearly enough for operators.
+- The UI needs explicit lanes for Model, Harness, Tools, Memory, and Approval so the user can see why the Agent is safe and controllable.
+- Live state chips such as pending review count and local memory counts make the panel feel operational rather than decorative.
+- The Harness panel should stay next to Gmail work because Gmail draft approval is the highest-risk current flow.

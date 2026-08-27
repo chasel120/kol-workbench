@@ -642,3 +642,9 @@ Supabase 应作为 KOL 业务数据和未来协作能力的云端数据库，而
 - Console prompts and command text must not be uploaded to Supabase by default.
 - If future analytics need console usage metrics, only sanitized aggregate counters may be considered after an explicit design review.
 - Generated draft subject/body, raw reply text, browser paths, Gmail compose URLs, and credentials remain excluded from Supabase even when actions are initiated from the console.
+
+# 2026-08-27 Harness Panel Data Boundary
+
+- Harness panel counters are derived from local runtime state and should not create new Supabase records.
+- Model names may be displayed in the panel as local configuration metadata, but API keys and provider secrets remain excluded.
+- Memory Scope text should summarize local counts only; it must not expose or sync raw session text, generated draft bodies, or raw replies.

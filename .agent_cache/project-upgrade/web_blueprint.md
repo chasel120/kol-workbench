@@ -395,3 +395,10 @@ MVP 暂不完成：
 - Console commands should route users into existing workflow panels/dialogs rather than bypassing review gates.
 - The KOL lead pool and Gmail queue remain the primary operating surfaces; the console is an orchestration layer for visibility and task routing.
 - The console trace should be visually compact, scrollable, and local-only.
+
+# 2026-08-27 Harness Panel UI Update
+
+- The Harness surface should read as a full agent control panel, not a simple terminal card.
+- Required panel regions: `Model -> Harness` architecture strip, Task Runner lane, Tool Registry lane, Memory Scope lane, Approval Gate lane, quick tool chips, event stream, and command input.
+- The panel should show live operational counts from local state where available.
+- The panel may use a focused dark console treatment inside the otherwise light operational dashboard, as long as it remains compact and readable.

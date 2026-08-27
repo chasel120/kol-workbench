@@ -251,3 +251,12 @@ Supabase 同步已预留本地 Agent 接口和数据边界。后续拿到用户�
 - Completed: added command routing for status, draft generation, Gmail queue focus, and import/manual lead entry.
 - Safety: console events are local UI/runtime traces only; raw prompts, generated mail bodies, browser paths, and credentials remain local-only and are not synced to Supabase.
 - Validation: frontend script parse passed and Python compile passed.
+
+# 2026-08-27 Harness Panel UI Refinement
+
+- Completed: upgraded the small console card into a fuller Harness-style panel.
+- Completed: widened the Gmail right-side workspace and added a visible `Model -> Harness` architecture strip.
+- Completed: added Task Runner, Tool Registry, Memory Scope, and Approval Gate lanes above the event stream.
+- Completed: wired the panel to live local state for model name, event count, lead/draft/reply memory counts, and pending review count.
+- Safety: the richer panel is still a UI/control layer only; it does not add background Gmail sending or cloud sync of local session content.
+- Validation: frontend script parse passed and Python compile passed.
